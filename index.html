@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <title>ЛАСТОЧКА.ru v2.9.7</title>
+    <title>ЛАСТОЧКА.ru v2.9.8</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <style>
@@ -36,7 +36,7 @@
         #chat-header { background: #7EA4D0; color: white; padding: 6px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
         
         .mobile-nav { display: none; background: #D4D0C8; border-top: 1px solid #808080; flex-shrink: 0; height: 45px; justify-content: space-around; align-items: center; }
-        .mobile-nav button { flex: 1; height: 100%; border: none; border-right: 1px solid #808080; background: transparent; color: #2D5082; border-radius: 0; font-size: 9px; }
+        .mobile-nav button { flex: 1; height: 100%; border: none; border-right: 1px solid #808080; background: transparent; color: #2D5082; border-radius: 0; font-size: 8px; padding: 0; }
 
         @media (max-width: 768px) {
             #main-ui { flex-direction: column; padding: 0; gap: 0; }
@@ -54,7 +54,7 @@
 <body>
 
     <div id="notification-container"></div>
-    <h1>ЛАСТОЧКА.ru v2.9.7</h1>
+    <h1>ЛАСТОЧКА.ru v2.9.8</h1>
 
     <div id="auth-box">
         <div class="card" style="width:280px;">
@@ -75,7 +75,8 @@
                 <div id="display-nick" style="font-weight:bold; color:#2D5082; margin-top:5px;"></div>
             </div>
             <button onclick="loadFeed()" style="width:100%; margin-bottom:5px;">ЛЕНТА</button>
-            <button onclick="loadFavoritesTab()" style="width:100%; margin-bottom:10px;">ИЗБРАННЫЕ</button>
+            <button onclick="loadFavoritesTab()" style="width:100%; margin-bottom:5px;">ИЗБРАННЫЕ</button>
+            <button onclick="showAbout()" style="width:100%; margin-bottom:10px;">О НАС</button>
             
             <strong>ГРУППЫ:</strong>
             <div id="groups-list" class="scroll-area"></div>
@@ -139,7 +140,7 @@
     <div class="mobile-nav" id="mob-nav">
         <button onclick="loadFeed()">ЛЕНТА</button>
         <button onclick="loadFavoritesTab()">ИЗБРАННЫЕ</button>
-        <button onclick="switchTab('col-left')">ЧАТЫ</button>
+        <button onclick="showAbout()">О НАС</button>
         <button onclick="switchTab('col-main'); showWall();">Я</button>
         <button onclick="switchTab('col-right')">ЛЮДИ</button>
     </div>
@@ -153,8 +154,8 @@
         let myId, myNick, currentChatId;
         const DEFAULT_AVATAR = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRLCFpHxyg6G5c4uQQy6U5SlgJr6qq6P6ot7Q&s";
 
-        // --- ЛОГИКА ИЗБРАННОГО ---
-        async function loadFavoritesTab() {
+        // --- ВКЛАДКА О НАС ---
+        function showAbout() {
             switchTab('col-main');
             document.getElementById('chat-window').style.display = 'none';
             document.getElementById('profile-screen').style.display = 'flex';
@@ -163,25 +164,42 @@
             document.getElementById('inbox-area').style.display = 'none';
             
             const wall = document.getElementById('wall-posts');
+            wall.innerHTML = `
+                <div style="background:#2D5082; color:white; padding:5px; font-weight:bold; text-align:center; margin-bottom:15px;">О ПРОЕКТЕ</div>
+                <div class="card" style="line-height:1.6; color:#333; text-align:center; padding:20px;">
+                    <img src="${DEFAULT_AVATAR}" style="width:80px; margin-bottom:10px; border:2px solid #7EA4D0; border-radius:10px;">
+                    <br>
+                    <strong style="font-size:16px; color:#2D5082;">Ласточка.ru</strong><br>
+                    Все права защищены!<br><br>
+                    Ласточка — это мессенджер, в котором ваши личные переписки всегда защищены!<br><br>
+                    <div style="border-top:1px solid #D4D0C8; padding-top:10px; font-size:10px; text-align:left;">
+                        • <b>Дата релиза Ласточка.ru:</b> Неизвестно<br>
+                        • <b>Стадия разработки:</b> Beta
+                    </div>
+                </div>
+            `;
+        }
+
+        async function loadFavoritesTab() {
+            switchTab('col-main');
+            document.getElementById('chat-window').style.display = 'none';
+            document.getElementById('profile-screen').style.display = 'flex';
+            document.getElementById('profile-card').style.display = 'none';
+            document.getElementById('wall-input-area').style.display = 'none';
+            document.getElementById('inbox-area').style.display = 'none';
+            const wall = document.getElementById('wall-posts');
             wall.innerHTML = '<div style="background:#2D5082; color:white; padding:5px; margin-bottom:10px; font-weight:bold; text-align:center;">ИЗБРАННЫЕ ПОЛЬЗОВАТЕЛИ</div>';
-            
             const { data: favs } = await _supabase.from('favorites').select('favorite_id').eq('user_id', myId);
             if(!favs || favs.length === 0) {
                 wall.innerHTML += '<div style="padding:20px; text-align:center; color:#999;">У вас пока нет избранных пользователей.</div>';
                 return;
             }
-            
             const ids = favs.map(f => f.favorite_id);
             const { data: users } = await _supabase.from('users').select('*').in('id_number', ids);
-            
             if(users) {
                 users.forEach(u => {
                     const div = document.createElement('div');
-                    div.className = 'card';
-                    div.style.display = 'flex';
-                    div.style.alignItems = 'center';
-                    div.style.gap = '10px';
-                    div.style.cursor = 'pointer';
+                    div.className = 'card'; div.style.display = 'flex'; div.style.alignItems = 'center'; div.style.gap = '10px'; div.style.cursor = 'pointer';
                     div.onclick = () => viewProfile(u.id_number);
                     div.innerHTML = `<img src="${u.avatar_url}" style="width:30px; height:30px; border-radius:50%; object-fit:cover;"><b style="color:#2D5082;">${u.nickname}</b> <small>(ID: ${u.id_number})</small>`;
                     wall.appendChild(div);
@@ -202,7 +220,6 @@
             checkFavoriteStatus(id);
         }
 
-        // --- ОСТАЛЬНАЯ ЛОГИКА ---
         async function toggleLike(postId, authorId, isFeed = false) {
             const { data: post } = await _supabase.from('posts').select('likes, liked_by').eq('id', postId).single();
             if (!post) return;
@@ -300,14 +317,11 @@
             document.getElementById('write-btn').style.display = isMe ? 'none' : 'block';
             document.getElementById('follow-btn').style.display = isMe ? 'none' : 'block';
             document.getElementById('fav-btn').style.display = isMe ? 'none' : 'block';
-            
             if(!isMe) {
                 document.getElementById('write-btn').onclick = () => openPrivate(user.id_number, user.nickname);
-                checkFollowStatus(userId);
-                checkFavoriteStatus(userId);
+                checkFollowStatus(userId); checkFavoriteStatus(userId);
             } else { loadInbox(); }
-            updateFollowCounts(userId);
-            loadPosts(userId);
+            updateFollowCounts(userId); loadPosts(userId);
         }
 
         async function loadPosts(userId) {
