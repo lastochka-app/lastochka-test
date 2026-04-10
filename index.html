@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <title>ЛАСТОЧКА.ru v2.9.8</title>
+    <title>ЛАСТОЧКА.ru v2.9.9</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <style>
@@ -29,6 +29,9 @@
         .del-btn { color: #cc0000; border: none; background: none; cursor: pointer; font-size: 9px; font-weight: bold; }
         .embedded-img { max-width: 100%; max-height: 250px; display: block; margin-top: 5px; border: 1px solid #D4D0C8; cursor: pointer; }
         
+        /* УБРАН СИНИЙ ФОН ИЗ ЗАГОЛОВКОВ ВНУТРИ ЛЕНТЫ */
+        .tab-header { border-bottom: 2px solid #7EA4D0; color: #2D5082; padding: 5px; margin-bottom: 10px; font-weight: bold; text-align: center; }
+
         .like-row { margin-top: 5px; display: flex; align-items: center; gap: 6px; }
         .like-btn { color: #2D5082; background: #F0F0F0; border: 1px solid #D4D0C8; padding: 2px 8px; font-size: 10px; cursor: pointer; }
         .like-btn.active { background: #2D5082; color: white; border-color: #2D5082; }
@@ -54,7 +57,7 @@
 <body>
 
     <div id="notification-container"></div>
-    <h1>ЛАСТОЧКА.ru v2.9.8</h1>
+    <h1>ЛАСТОЧКА.ru v2.9.9</h1>
 
     <div id="auth-box">
         <div class="card" style="width:280px;">
@@ -154,7 +157,7 @@
         let myId, myNick, currentChatId;
         const DEFAULT_AVATAR = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRLCFpHxyg6G5c4uQQy6U5SlgJr6qq6P6ot7Q&s";
 
-        // --- ВКЛАДКА О НАС ---
+        // --- ВКЛАДКА О НАС (БЕЗ ИЗОБРАЖЕНИЙ) ---
         function showAbout() {
             switchTab('col-main');
             document.getElementById('chat-window').style.display = 'none';
@@ -165,14 +168,12 @@
             
             const wall = document.getElementById('wall-posts');
             wall.innerHTML = `
-                <div style="background:#2D5082; color:white; padding:5px; font-weight:bold; text-align:center; margin-bottom:15px;">О ПРОЕКТЕ</div>
-                <div class="card" style="line-height:1.6; color:#333; text-align:center; padding:20px;">
-                    <img src="${DEFAULT_AVATAR}" style="width:80px; margin-bottom:10px; border:2px solid #7EA4D0; border-radius:10px;">
-                    <br>
+                <div class="tab-header">О ПРОЕКТЕ</div>
+                <div class="card" style="line-height:1.6; color:#333; text-align:center; padding:30px;">
                     <strong style="font-size:16px; color:#2D5082;">Ласточка.ru</strong><br>
                     Все права защищены!<br><br>
                     Ласточка — это мессенджер, в котором ваши личные переписки всегда защищены!<br><br>
-                    <div style="border-top:1px solid #D4D0C8; padding-top:10px; font-size:10px; text-align:left;">
+                    <div style="border-top:1px solid #D4D0C8; padding-top:15px; font-size:11px; text-align:left; display:inline-block; max-width:300px;">
                         • <b>Дата релиза Ласточка.ru:</b> Неизвестно<br>
                         • <b>Стадия разработки:</b> Beta
                     </div>
@@ -188,7 +189,7 @@
             document.getElementById('wall-input-area').style.display = 'none';
             document.getElementById('inbox-area').style.display = 'none';
             const wall = document.getElementById('wall-posts');
-            wall.innerHTML = '<div style="background:#2D5082; color:white; padding:5px; margin-bottom:10px; font-weight:bold; text-align:center;">ИЗБРАННЫЕ ПОЛЬЗОВАТЕЛИ</div>';
+            wall.innerHTML = '<div class="tab-header">ИЗБРАННЫЕ ПОЛЬЗОВАТЕЛИ</div>';
             const { data: favs } = await _supabase.from('favorites').select('favorite_id').eq('user_id', myId);
             if(!favs || favs.length === 0) {
                 wall.innerHTML += '<div style="padding:20px; text-align:center; color:#999;">У вас пока нет избранных пользователей.</div>';
@@ -247,7 +248,7 @@
             document.getElementById('inbox-area').style.display = 'none';
             const { data: posts } = await _supabase.from('posts').select('*').order('created_at', { ascending: false }).limit(50);
             const wall = document.getElementById('wall-posts');
-            wall.innerHTML = '<div style="background:#2D5082; color:white; padding:5px; margin-bottom:10px; font-weight:bold; text-align:center;">ЛЕНТА ПОСТОВ</div>';
+            wall.innerHTML = '<div class="tab-header">ЛЕНТА ПОСТОВ</div>';
             if(posts) {
                 const shuffled = posts.sort(() => 0.5 - Math.random());
                 shuffled.forEach(p => {
