@@ -1,169 +1,211 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <title>ЛАСТОЧКА.ru — Гибрид</title>
+    <title>ЛАСТОЧКА</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <style>
+        /* ПЕРЕМЕННЫЕ (СТИЛЬ VK + TG) */
         :root {
-            --bg-main: #ECE9D8;
-            --bg-col: #F0F0F0;
-            --bg-card: #ffffff;
+            --vk-blue: #0077FF;
+            --vk-bg: #EDEEF0;
+            --tg-chat-bg: #8294a5;
             --text-main: #000000;
-            --text-blue: #2D5082;
-            --border-ui: #D4D0C8;
-            --border-accent: #7EA4D0;
-            --tg-cyan: #24A1DE;
-            --vk-blue: #4C75A3;
-            --btn-grad: linear-gradient(to bottom, #ffffff 0%, #e0e0e0 100%);
+            --text-gray: #828282;
+            --card-shadow: 0 1px 2px 0 rgba(0,0,0,0.1);
+            --br: 10px;
         }
 
         [data-theme="dark"] {
-            --bg-main: #1A1A1B;
-            --bg-col: #2D2D2E;
-            --bg-card: #3D3D3E;
-            --text-main: #E0E0E0;
-            --text-blue: #8AB4F8;
-            --border-ui: #444445;
-            --border-accent: #5F6368;
-            --btn-grad: linear-gradient(to bottom, #444 0%, #222 100%);
+            --vk-bg: #19191a;
+            --vk-blue: #71aaeb;
+            --text-main: #e1e3e6;
+            --text-gray: #76787a;
+            --tg-chat-bg: #0f1621;
         }
 
-        html, body { height: 100%; margin: 0; padding: 0; overflow: hidden; background-color: var(--bg-main); font-family: Tahoma, sans-serif; font-size: 12px; color: var(--text-main); }
-        body { display: flex; flex-direction: column; transition: background 0.2s; }
+        /* БАЗОВЫЕ СТИЛИ */
+        html, body { height: 100%; margin: 0; padding: 0; background-color: var(--vk-bg); font-family: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: var(--text-main); }
+        body { display: flex; flex-direction: column; }
+
+        h1 { font-size: 20px; padding: 12px; margin: 0; background: #fff; border-bottom: 1px solid rgba(0,0,0,0.1); color: var(--vk-blue); text-align: center; }
+
+        /* КОНТЕЙНЕРЫ */
+        #auth-box { flex: 1; display: flex; justify-content: center; align-items: center; }
+        #main-ui { display: none; flex: 1; width: 100%; max-width: 1100px; margin: 0 auto; padding: 15px; box-sizing: border-box; gap: 20px; }
+
+        .column { display: flex; flex-direction: column; height: 100%; }
+        #col-left { width: 180px; }
+        #col-main { flex: 1; min-width: 0; }
+        #col-right { width: 260px; }
+
+        /* КАРТОЧКИ (VK STYLE) */
+        .card { background: #fff; border-radius: var(--br); box-shadow: var(--card-shadow); padding: 12px; margin-bottom: 12px; }
+        [data-theme="dark"] .card { background: #222222; }
+
+        /* КНОПКИ */
+        button { background: var(--vk-blue); color: #fff; border: none; border-radius: 8px; padding: 8px 16px; cursor: pointer; font-weight: 500; transition: opacity 0.2s; }
+        button:hover { opacity: 0.9; }
+        .secondary-btn { background: rgba(0,0,0,0.05); color: var(--vk-blue); }
+
+        input, textarea { background: var(--vk-bg); border: 1px solid rgba(0,0,0,0.1); border-radius: 8px; padding: 10px; margin: 5px 0; width: 100%; box-sizing: border-box; color: var(--text-main); }
+
+        /* ТЕЛЕГРАМ СТИЛЬ ГРУПП И ЧАТОВ */
+        .scroll-area { flex: 1; overflow-y: auto; padding-right: 5px; }
         
-        /* HEADER */
-        header { background: var(--vk-blue); color: white; padding: 5px 10px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.2); z-index: 10; }
-        header h1 { font-size: 16px; margin: 0; letter-spacing: 1px; }
-
-        #main-ui { display: none; flex: 1; width: 100%; max-width: 1200px; margin: 0 auto; padding: 10px; box-sizing: border-box; gap: 15px; overflow: hidden; }
+        /* Сообщения как в TG */
+        .message-bubble { 
+            max-width: 80%; 
+            margin-bottom: 8px; 
+            padding: 8px 12px; 
+            border-radius: 15px; 
+            background: #fff; 
+            box-shadow: 0 1px 1px rgba(0,0,0,0.1);
+            position: relative;
+        }
+        [data-theme="dark"] .message-bubble { background: #2b333d; }
         
-        .column { display: flex; flex-direction: column; background: var(--bg-col); border: 1px solid var(--border-ui); padding: 8px; height: 100%; box-sizing: border-box; }
-        #col-left { width: 160px; flex-shrink: 0; border: none; background: transparent; }
-        #col-main { flex: 1; background: var(--bg-card); border: 1px solid var(--border-accent); min-width: 350px; position: relative; }
-        #col-right { width: 220px; flex-shrink: 0; }
-
-        /* MENU VK STYLE */
-        .menu-item { padding: 6px 8px; cursor: pointer; color: var(--text-blue); display: flex; align-items: center; gap: 8px; border-radius: 3px; }
-        .menu-item:hover { background: rgba(0,0,0,0.05); text-decoration: underline; }
-        .menu-item.active { font-weight: bold; background: var(--border-ui); }
-
-        /* CARDS & POSTS */
-        .card { border: 1px solid var(--border-accent); background: var(--bg-card); padding: 8px; margin-bottom: 8px; }
-        button { background: var(--btn-grad); border: 1px solid #707070; border-radius: 2px; padding: 4px 8px; cursor: pointer; font-size: 11px; color: var(--text-main); }
-        button:active { background: var(--border-ui); }
-        input, textarea { border: 1px solid var(--border-accent); background: var(--bg-card); color: var(--text-main); padding: 5px; margin: 3px 0; width: 100%; box-sizing: border-box; font-family: Tahoma; }
+        .post { border-bottom: 1px solid rgba(0,0,0,0.05); padding: 15px 0; }
+        .post:last-child { border: none; }
         
-        .scroll-area { flex: 1; overflow-y: auto; padding-right: 2px; }
-        .post { border-bottom: 1px solid var(--border-ui); padding: 12px 0; }
-        .post-header { display: flex; gap: 10px; align-items: flex-start; }
-        .post-avatar { width: 40px; height: 40px; border-radius: 4px; border: 1px solid var(--border-ui); }
-        
-        /* CHAT TG STYLE */
-        .msg-bubble { margin-bottom: 8px; padding: 6px 10px; border-radius: 4px; max-width: 85%; position: relative; border: 1px solid var(--border-ui); }
-        .msg-own { align-self: flex-end; background: #effdde; border-color: #bcd99d; }
-        .msg-other { align-self: flex-start; background: #fff; }
+        .embedded-img { max-width: 100%; border-radius: var(--br); margin-top: 8px; }
 
-        /* UTILS */
-        .online-dot { width: 8px; height: 8px; background: #42b72a; border-radius: 50%; display: inline-block; border: 1px solid white; }
-        .badge { background: var(--tg-cyan); color: white; padding: 1px 4px; border-radius: 3px; font-size: 9px; vertical-align: middle; }
+        /* ТАБЫ И МЕНЮ */
+        .nav-link { 
+            padding: 8px 12px; 
+            border-radius: 6px; 
+            cursor: pointer; 
+            color: var(--text-main); 
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .nav-link:hover { background: rgba(0,0,0,0.05); }
 
+        /* МОБИЛЬНАЯ НАВИГАЦИЯ (TG STYLE) */
+        .mobile-nav { 
+            display: none; 
+            background: #fff; 
+            border-top: 1px solid rgba(0,0,0,0.1); 
+            height: 60px; 
+            justify-content: space-around; 
+            align-items: center; 
+        }
+        [data-theme="dark"] .mobile-nav { background: #222; }
+        .mobile-nav button { background: none; color: var(--text-gray); flex: 1; font-size: 10px; display: flex; flex-direction: column; align-items: center; }
+        .mobile-nav button.active { color: var(--vk-blue); }
+
+        /* АДАПТИВНОСТЬ */
         @media (max-width: 768px) {
             #main-ui { padding: 0; gap: 0; }
-            .column { width: 100% !important; display: none; border: none; }
+            .column { display: none; width: 100% !important; }
             .column.active-mob { display: flex; }
-            header h1 { font-size: 14px; }
+            #col-right { display: none; }
+            .mobile-nav { display: flex; }
+            .card { border-radius: 0; margin-bottom: 8px; border: none; }
+            #chat-window { background: var(--tg-chat-bg); }
         }
+
+        #notification-container { position: fixed; top: 10px; right: 10px; z-index: 100; }
+        .toast { background: var(--vk-blue); color: white; padding: 12px; border-radius: var(--br); margin-bottom: 5px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
     </style>
 </head>
 <body>
 
-    <header>
-        <h1>🕊️ ЛАСТОЧКА</h1>
-        <div id="header-right" style="font-size: 10px;">
-            <span id="top-nick"></span> <button onclick="location.reload()" style="padding:2px 5px;">ВЫХОД</button>
-        </div>
-    </header>
+    <div id="notification-container"></div>
+    <h1>ЛАСТОЧКА</h1>
 
-    <div id="auth-box" style="flex:1; display:flex; justify-content:center; align-items:center;">
-        <div class="card" style="width:280px; box-shadow: 5px 5px 0px rgba(0,0,0,0.1);">
-            <div style="background:var(--vk-blue); color:white; padding:5px; margin:-8px -8px 10px -8px; font-weight:bold;">Вход в сеть</div>
+    <div id="auth-box">
+        <div class="card" style="width:320px; text-align: center;">
+            <div style="font-size: 24px; color: var(--vk-blue); margin-bottom: 20px;"><b>Log in</b></div>
             <input type="number" id="my-id-input" placeholder="ID">
             <input type="text" id="my-nick-input" placeholder="Никнейм">
             <input type="password" id="my-pass-input" placeholder="Пароль">
-            <button onclick="handleAuth('login')" style="width:100%; margin-top:5px; font-weight:bold;">ВОЙТИ</button>
-            <button onclick="handleAuth('reg')" style="width:100%; margin-top:3px;">СОЗДАТЬ АККАУНТ</button>
+            <input type="text" id="my-avatar-input" placeholder="Ссылка на фото">
+            <button onclick="handleAuth('login')" style="width:100%; margin-top:10px;">Войти</button>
+            <button onclick="handleAuth('reg')" class="secondary-btn" style="width:100%; margin-top:8px;">Регистрация</button>
         </div>
     </div>
 
     <div id="main-ui">
         <div class="column" id="col-left">
-            <div class="menu-item" onclick="viewProfile(myId)">🏠 Моя страница</div>
-            <div class="menu-item" onclick="loadFeed()">📰 Новости</div>
-            <div class="menu-item" onclick="switchTab('col-main'); openMessenger();">💬 Мессенджер</div>
-            <div class="menu-item" onclick="loadFavoritesTab()">⭐ Избранное</div>
-            <div class="menu-item" onclick="switchTab('col-right')">👥 Люди</div>
-            <hr style="width:100%; border:0; border-top:1px solid var(--border-ui);">
-            <div style="font-weight:bold; padding:5px; font-size:10px; color:#888;">КАНАЛЫ</div>
-            <div id="groups-list" class="scroll-area" style="max-height:200px;"></div>
-            <button onclick="createGroup()" style="width:100%; margin-top:5px;">+ Создать</button>
+            <div class="nav-link" onclick="loadFeed()"><span>🏠</span> Лента</div>
+            <div class="nav-link" onclick="switchTab('col-main'); showWall();"><span>👤</span> Профиль</div>
+            <div class="nav-link" onclick="loadFavoritesTab()"><span>⭐</span> Избранное</div>
+            <div class="nav-link" onclick="showAbout()"><span>ℹ️</span> О нас</div>
+            <hr style="width: 100%; opacity: 0.1;">
+            <div style="font-weight: bold; padding: 8px; font-size: 11px; color: var(--text-gray);">ГРУППЫ</div>
+            <div id="groups-list" class="scroll-area" style="max-height: 200px;"></div>
+            <button onclick="createGroup()" class="secondary-btn" style="margin-top:5px; font-size: 11px;">+ Создать группу</button>
         </div>
 
         <div class="column active-mob" id="col-main">
-            <div id="profile-screen" style="display:none; flex-direction:column; height:100%;">
-                <div class="card" style="display:flex; gap:15px;">
-                    <img id="view-avatar" style="width:100px; height:100px; border:1px solid var(--border-ui);">
-                    <div style="flex:1;">
-                        <div style="display:flex; align-items:center; gap:5px;">
-                            <b id="view-nick" style="font-size:16px;"></b> <span class="online-dot"></span>
+            <div id="profile-screen" style="display:flex; flex-direction:column; height:100%;">
+                <div id="profile-card" class="card">
+                    <div style="display:flex; align-items:center; gap:15px;">
+                        <img id="view-avatar" style="width:80px; height:80px; border-radius:50%; object-fit:cover; border:2px solid #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+                        <div style="flex:1;">
+                            <div id="view-nick" style="font-size:20px; font-weight:bold;"></div>
+                            <div id="view-id-label" style="color:var(--text-gray); font-size:12px;"></div>
+                            <div style="margin-top:10px; display:flex; gap:15px; font-size:12px;">
+                                <span><b>104</b> подп.</span> <span><b>88</b> подп.</span>
+                            </div>
                         </div>
-                        <div id="view-status" style="color:#666; margin-bottom:8px; font-style:italic; cursor:pointer;" onclick="changeStatus()">установить статус...</div>
-                        <div style="font-size:11px; color:#555;">
-                            ID: <span id="view-id-label"></span><br>
-                            Подписчиков: <b id="count-followers">0</b>
-                        </div>
-                        <div style="margin-top:10px; display:flex; gap:5px;">
-                            <button id="write-btn" class="tg-btn">💬 Сообщение</button>
-                            <button id="follow-btn">➕ Подписаться</button>
-                            <button id="fav-btn">⭐</button>
-                        </div>
+                    </div>
+                    <div style="margin-top:15px; display:flex; gap:8px;">
+                        <button id="write-btn" style="flex:1; display:none;">Сообщение</button>
+                        <button id="follow-btn" style="flex:1; display:none;" class="secondary-btn">Подписаться</button>
+                        <button id="fav-btn" style="display:none;" class="secondary-btn">★</button>
                     </div>
                 </div>
 
-                <div id="wall-input-area" class="card" style="margin-top:5px;">
-                    <textarea id="post-text" placeholder="Что у вас нового?" rows="2" style="resize:none;"></textarea>
-                    <div style="display:flex; justify-content:flex-end; margin-top:4px;">
-                        <button onclick="createPost()">Отправить</button>
+                <div id="inbox-area" class="card" style="display:none;">
+                    <div style="font-weight:bold; margin-bottom:10px; font-size:13px;">Диалоги</div>
+                    <div id="inbox-list"></div>
+                </div>
+
+                <div id="wall-input-area" class="card">
+                    <textarea id="post-text" placeholder="Что у вас нового?" rows="3" style="border:none; outline:none; resize:none; background:none; padding:0;"></textarea>
+                    <div style="display:flex; justify-content:flex-end; border-top:1px solid rgba(0,0,0,0.05); padding-top:10px;">
+                        <button onclick="createPost()">Опубликовать</button>
                     </div>
                 </div>
+                
                 <div id="wall-posts" class="scroll-area"></div>
             </div>
 
             <div id="chat-window" style="display:none; flex-direction:column; height:100%;">
-                <div id="chat-header" style="background:var(--bg-col); border-bottom:1px solid var(--border-accent); padding:8px; display:flex; align-items:center; gap:10px;">
-                    <button onclick="openMessenger()">←</button>
-                    <b id="chat-title">Выберите чат</b>
+                <div style="background:#fff; padding:10px; display:flex; align-items:center; gap:10px; border-bottom:1px solid rgba(0,0,0,0.1);">
+                    <button onclick="switchTab('col-left')" class="secondary-btn" style="padding:5px 10px;">←</button>
+                    <b id="chat-title" style="flex:1;">Чат</b>
                 </div>
-                <div id="messages-list" class="scroll-area" style="display:flex; flex-direction:column; padding:10px; background:#f5f5f5;"></div>
-                <div id="chat-input-area" class="card" style="margin:0; border:none; border-top:1px solid var(--border-ui); display:flex; gap:5px;">
-                    <input type="text" id="msg-input" placeholder="Написать сообщение..." onkeyup="if(event.keyCode===13) sendMessage()">
-                    <button onclick="sendMessage()" style="background:var(--tg-cyan); color:white; border:none; padding:0 15px;">📡</button>
+                <div id="messages-list" class="scroll-area" style="padding:15px; background: var(--tg-chat-bg);"></div>
+                <div style="background:#fff; padding:10px; display:flex; gap:10px; align-items:center;">
+                    <button onclick="sendImagePrompt()" class="secondary-btn">📎</button>
+                    <input type="text" id="msg-input" placeholder="Написать сообщение..." onkeyup="if(event.keyCode===13) sendMessage()" style="margin:0;">
+                    <button onclick="sendMessage()" style="border-radius:50%; width:40px; height:40px; padding:0;">➤</button>
                 </div>
-            </div>
-            
-            <div id="messenger-list-screen" style="display:none; flex-direction:column; height:100%;">
-                <div class="tab-header" style="padding:10px; font-weight:bold; border-bottom:1px solid var(--border-ui);">ЧАТЫ И КАНАЛЫ</div>
-                <div id="inbox-list" class="scroll-area"></div>
             </div>
         </div>
 
         <div class="column" id="col-right">
             <div class="card">
-                <strong>Поиск:</strong>
-                <input type="text" id="search-users" placeholder="Введите имя..." oninput="loadUsers(this.value)">
+                <input type="number" id="target-id-input" placeholder="Поиск по ID">
+                <button onclick="goToId()" style="width:100%; margin-top:5px;">Перейти</button>
             </div>
-            <div id="users-list" class="scroll-area"></div>
+            <div class="card" style="flex:1; display:flex; flex-direction:column;">
+                <b style="font-size:12px; margin-bottom:10px; color:var(--text-gray);">РЕКОМЕНДАЦИИ</b>
+                <div id="users-list" class="scroll-area"></div>
+            </div>
         </div>
+    </div>
+
+    <div class="mobile-nav" id="mob-nav">
+        <button onclick="loadFeed()">🏠<br>Лента</button>
+        <button onclick="switchTab('col-left')">💬<br>Группы</button>
+        <button onclick="switchTab('col-main'); showWall();">👤<br>Профиль</button>
+        <button onclick="switchTab('col-right')">🔍<br>Люди</button>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -173,19 +215,47 @@
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         let myId, myNick, currentChatId;
-        const DEFAULT_AVATAR = "https://winxp.gui.style/icons/user_32.png";
+        const DEFAULT_AVATAR = "https://vk.com/images/camera_200.png";
+
+        function setTheme(theme) {
+            if (theme === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+            else document.documentElement.removeAttribute('data-theme');
+            localStorage.setItem('theme', theme);
+        }
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme) setTheme(savedTheme);
+
+        function showAbout() {
+            switchTab('col-main');
+            document.getElementById('chat-window').style.display = 'none';
+            document.getElementById('profile-screen').style.display = 'flex';
+            document.getElementById('profile-card').style.display = 'none';
+            document.getElementById('wall-input-area').style.display = 'none';
+            document.getElementById('inbox-area').style.display = 'none';
+            const wall = document.getElementById('wall-posts');
+            wall.innerHTML = `
+                <div class="card" style="text-align:center; padding:40px;">
+                    <h2 style="color:var(--vk-blue);">Ласточка</h2>
+                    <p>Бета-версия социальной сети нового поколения.</p>
+                    <div style="margin-top:20px;">
+                        <button onclick="setTheme('light')" class="secondary-btn">Светлая тема</button>
+                        <button onclick="setTheme('dark')" class="secondary-btn">Темная тема</button>
+                    </div>
+                </div>`;
+        }
 
         async function handleAuth(mode) {
             const id = document.getElementById('my-id-input').value;
             const pass = document.getElementById('my-pass-input').value;
             const nick = document.getElementById('my-nick-input').value;
-            if (mode === 'reg') { await _supabase.from('users').insert([{ id_number: id, password: pass, nickname: nick, avatar_url: DEFAULT_AVATAR }]); }
+            let av = document.getElementById('my-avatar-input').value.trim() || DEFAULT_AVATAR;
+            if (mode === 'reg') await _supabase.from('users').insert([{ id_number: id, password: pass, nickname: nick, avatar_url: av }]);
             const { data: user } = await _supabase.from('users').select('*').eq('id_number', id).eq('password', pass).single();
             if (user) {
                 myId = id; myNick = user.nickname;
                 document.getElementById('auth-box').style.display = 'none';
                 document.getElementById('main-ui').style.display = 'flex';
-                document.getElementById('top-nick').innerText = myNick;
+                if(window.innerWidth <= 768) document.getElementById('mob-nav').style.display = 'flex';
                 loadGroups(); loadUsers(); viewProfile(myId); initRealtime();
             } else { alert("Ошибка входа!"); }
         }
@@ -193,79 +263,62 @@
         async function viewProfile(userId) {
             switchTab('col-main');
             document.getElementById('chat-window').style.display = 'none';
-            document.getElementById('messenger-list-screen').style.display = 'none';
             document.getElementById('profile-screen').style.display = 'flex';
-            
+            document.getElementById('profile-card').style.display = 'flex';
             const { data: user } = await _supabase.from('users').select('*').eq('id_number', userId).single();
             if(!user) return;
-
-            document.getElementById('view-avatar').src = user.avatar_url || DEFAULT_AVATAR;
+            document.getElementById('view-avatar').src = user.avatar_url;
             document.getElementById('view-nick').innerText = user.nickname;
-            document.getElementById('view-status').innerText = user.status || "изменить статус...";
-            document.getElementById('view-id-label').innerText = user.id_number;
-
+            document.getElementById('view-id-label').innerText = "ласточка.ru/id" + user.id_number;
             const isMe = (userId == myId);
             document.getElementById('wall-input-area').style.display = isMe ? 'block' : 'none';
+            document.getElementById('inbox-area').style.display = isMe ? 'block' : 'none';
             document.getElementById('write-btn').style.display = isMe ? 'none' : 'block';
+            document.getElementById('follow-btn').style.display = isMe ? 'none' : 'block';
+            document.getElementById('fav-btn').style.display = isMe ? 'none' : 'block';
             if(!isMe) {
                 document.getElementById('write-btn').onclick = () => openPrivate(user.id_number, user.nickname);
-                checkFollowStatus(userId);
-            }
-            updateFollowCounts(userId); loadPosts(userId);
+                checkFollowStatus(userId); checkFavoriteStatus(userId);
+            } else { loadInbox(); }
+            loadPosts(userId);
         }
 
         async function loadPosts(userId) {
             const { data: posts } = await _supabase.from('posts').select('*').eq('author_id', userId).order('created_at', { ascending: false });
             const wall = document.getElementById('wall-posts');
             wall.innerHTML = '';
-            posts?.forEach(p => {
-                const div = document.createElement('div');
-                div.className = 'post';
-                div.innerHTML = `
-                    <div class="post-header">
-                        <img src="${DEFAULT_AVATAR}" class="post-avatar">
-                        <div style="flex:1;">
-                            <b style="color:var(--text-blue);">${userId}</b>
-                            <div style="font-size:10px; color:#999;">${new Date(p.created_at).toLocaleString()}</div>
-                            <div style="margin-top:5px;">${p.text}</div>
-                            <div style="margin-top:8px; display:flex; gap:10px;">
-                                <span style="cursor:pointer; color:var(--vk-blue);" onclick="toggleLike('${p.id}', '${userId}')">❤️ ${p.likes || 0}</span>
-                                <span style="cursor:pointer; color:var(--tg-cyan);" onclick="repost('${p.id}')">🔄 Репост</span>
-                            </div>
+            if(posts) {
+                posts.forEach(p => {
+                    const isLiked = (p.liked_by || []).includes(String(myId));
+                    const div = document.createElement('div');
+                    div.className = 'card post';
+                    div.innerHTML = `
+                        <div style="display:flex; justify-content:space-between;">
+                            <b style="color:var(--vk-blue);">Пост</b>
+                            <small style="color:var(--text-gray);">${new Date(p.created_at).toLocaleDateString()}</small>
                         </div>
-                    </div>`;
-                wall.appendChild(div);
-            });
-        }
-
-        function openMessenger() {
-            document.getElementById('profile-screen').style.display = 'none';
-            document.getElementById('chat-window').style.display = 'none';
-            document.getElementById('messenger-list-screen').style.display = 'flex';
-            loadInbox();
-        }
-
-        async function openPrivate(id, nick) {
-            currentChatId = [myId, id].sort().join("_");
-            startChatUI(nick);
-        }
-
-        function startChatUI(title) {
-            document.getElementById('messenger-list-screen').style.display = 'none';
-            document.getElementById('profile-screen').style.display = 'none';
-            document.getElementById('chat-window').style.display = 'flex';
-            document.getElementById('chat-title').innerText = title;
-            loadMessages();
+                        <div style="margin:10px 0;">${parseContent(p.text)}</div>
+                        <div style="display:flex; gap:10px;">
+                            <button onclick="toggleLike('${p.id}', '${userId}')" class="${isLiked?'':'secondary-btn'}" style="font-size:11px;">❤️ ${p.likes || 0}</button>
+                            ${p.author_id == myId ? `<button class="secondary-btn" style="font-size:11px; color:red;" onclick="deletePost('${p.id}')">Удалить</button>` : ''}
+                        </div>`;
+                    wall.appendChild(div);
+                });
+            }
         }
 
         async function loadMessages() {
+            if(!currentChatId) return;
             const { data } = await _supabase.from('messages').select('*').eq('chat_id', currentChatId).order('created_at', { ascending: true });
             const box = document.getElementById('messages-list');
             box.innerHTML = (data || []).map(m => {
-                const isOwn = m.sender_id == myId;
-                return `<div class="msg-bubble ${isOwn?'msg-own':'msg-other'}">
-                    <small style="color:var(--tg-cyan); font-weight:bold;">${m.sender_id}</small>
-                    <div>${m.text}</div>
+                const isMine = m.sender_id == myId;
+                return `
+                <div style="display:flex; justify-content: ${isMine?'flex-end':'flex-start'};">
+                    <div class="message-bubble" style="${isMine?'background:var(--vk-blue); color:#fff; border-bottom-right-radius:2px;':'border-bottom-left-radius:2px;'}">
+                        <div style="font-size:10px; opacity:0.7; margin-bottom:2px;">ID ${m.sender_id}</div>
+                        ${parseContent(m.text)}
+                    </div>
                 </div>`;
             }).join('');
             box.scrollTop = box.scrollHeight;
@@ -278,124 +331,86 @@
             inp.value = ""; loadMessages();
         }
 
+        async function loadInbox() {
+            const { data } = await _supabase.from('messages').select('*').order('created_at', { ascending: false }).limit(20);
+            const list = document.getElementById('inbox-list');
+            if(!data) return;
+            const res = []; const seen = new Set();
+            for(let m of data) {
+                if(m.sender_id == myId) continue;
+                if(m.chat_id.includes(myId) || m.chat_id.startsWith("group_")) {
+                    if(!seen.has(m.chat_id)) { seen.add(m.chat_id); res.push(m); }
+                }
+                if(res.length >= 5) break;
+            }
+            list.innerHTML = res.map(m => `
+                <div class="nav-link" style="font-size:12px; border-bottom:1px solid rgba(0,0,0,0.03);" onclick="openChatById('${m.chat_id}')">
+                    <b>${m.chat_id.startsWith('group_')?'👥 Группа':'👤 ID '+m.sender_id}</b>: ${m.text.substring(0,20)}...
+                </div>`).join('');
+        }
+
+        // --- Вспомогательные функции (остались прежними для работы кода) ---
+        function parseContent(str) {
+            const urlPattern = /(https?:\/\/[^\s]+)/g;
+            return str.replace(urlPattern, (u) => u.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? `<img src="${u}" class="embedded-img" onclick="window.open('${u}')">` : `<a href="${u}" target="_blank" style="color:inherit; text-decoration:underline;">${u}</a>`);
+        }
+        function switchTab(id) {
+            document.querySelectorAll('.column').forEach(c => c.classList.remove('active-mob'));
+            document.getElementById(id).classList.add('active-mob');
+        }
+        async function openPrivate(id, nick) {
+            currentChatId = [myId, id].sort().join("_");
+            document.getElementById('profile-screen').style.display = 'none';
+            document.getElementById('chat-window').style.display = 'flex';
+            document.getElementById('chat-title').innerText = nick;
+            switchTab('col-main'); loadMessages();
+        }
+        async function openChatById(chatId) {
+            if(chatId.startsWith("group_")) {
+                const gid = chatId.replace("group_", "");
+                const {data} = await _supabase.from('groups').select('name').eq('id', gid).single();
+                if(data) startGroupChat(gid, data.name);
+            } else {
+                const tid = chatId.split('_').find(x => x != myId);
+                const {data} = await _supabase.from('users').select('nickname').eq('id_number', tid).single();
+                if(data) openPrivate(tid, data.nickname);
+            }
+        }
+        async function startGroupChat(id, name) {
+            currentChatId = "group_" + id;
+            document.getElementById('profile-screen').style.display = 'none';
+            document.getElementById('chat-window').style.display = 'flex';
+            document.getElementById('chat-title').innerText = "👥 " + name;
+            switchTab('col-main'); loadMessages();
+        }
+        async function loadGroups() {
+            const { data } = await _supabase.from('groups').select('*');
+            if(data) document.getElementById('groups-list').innerHTML = data.map(g => `<div class="nav-link" style="font-size:12px;" onclick="startGroupChat('${g.id}','${g.name}')"># ${g.name}</div>`).join('');
+        }
+        async function loadUsers() {
+            const { data } = await _supabase.from('users').select('*');
+            if(data) document.getElementById('users-list').innerHTML = data.map(u => `
+                <div class="nav-link" style="font-size:12px;" onclick="viewProfile('${u.id_number}')">
+                    <img src="${u.avatar_url}" style="width:24px; height:24px; border-radius:50%; object-fit:cover;"> ${u.nickname}
+                </div>`).join('');
+        }
         async function createPost() {
             const t = document.getElementById('post-text').value.trim();
             if(!t) return;
             await _supabase.from('posts').insert([{ author_id: myId, text: t, likes: 0, liked_by: [] }]);
-            document.getElementById('post-text').value = ""; loadPosts(myId);
+            document.getElementById('post-text').value = ""; viewProfile(myId);
         }
-
-        async function loadUsers(query = "") {
-            let req = _supabase.from('users').select('*').limit(20);
-            if(query) req = req.ilike('nickname', `%${query}%`);
-            const { data } = await req;
-            if(data) document.getElementById('users-list').innerHTML = data.map(u => `<div class="menu-item" onclick="viewProfile('${u.id_number}')">👤 ${u.nickname}</div>`).join('');
+        function sendImagePrompt() {
+            const url = prompt("Вставьте URL изображения:");
+            if(url) { document.getElementById('msg-input').value = url; sendMessage(); }
         }
-
-        async function loadGroups() {
-            const { data } = await _supabase.from('groups').select('*');
-            if(data) document.getElementById('groups-list').innerHTML = data.map(g => `<div class="menu-item" style="font-size:11px;" onclick="startGroupChat('${g.id}','${g.name}')">📢 ${g.name}</div>`).join('');
-        }
-
-        function startGroupChat(id, name) {
-            currentChatId = "group_" + id;
-            startChatUI(name);
-        }
-
-        async function changeStatus() {
-            const s = prompt("Ваш новый статус:");
-            if(s !== null) {
-                await _supabase.from('users').update({ status: s }).eq('id_number', myId);
-                viewProfile(myId);
-            }
-        }
-
-        async function loadInbox() {
-            const { data } = await _supabase.from('messages').select('*').order('created_at', { ascending: false }).limit(50);
-            const list = document.getElementById('inbox-list');
-            const seen = new Set();
-            const chats = [];
-            data?.forEach(m => {
-                if((m.chat_id.includes(myId) || m.chat_id.startsWith("group_")) && !seen.has(m.chat_id)) {
-                    seen.add(m.chat_id); chats.push(m);
-                }
-            });
-            list.innerHTML = chats.map(m => `
-                <div class="card" style="cursor:pointer; display:flex; gap:10px; align-items:center;" onclick="openChatById('${m.chat_id}')">
-                    <div style="width:30px; height:30px; background:var(--border-accent); border-radius:50%; display:flex; align-items:center; justify-content:center; color:white;">${m.chat_id.startsWith('group_')?'#':'@'}</div>
-                    <div style="flex:1;">
-                        <b>${m.chat_id}</b><br>
-                        <small style="color:#777;">${m.text.substring(0,30)}...</small>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        async function openChatById(chatId) {
-            currentChatId = chatId;
-            startChatUI(chatId);
-        }
-
-        function switchTab(id) {
-            document.querySelectorAll('.column').forEach(c => c.classList.remove('active-mob'));
-            document.getElementById(id).classList.add('active-mob');
-            if(id === 'col-left') {
-                document.getElementById('profile-screen').style.display = 'none';
-            }
-        }
-
+        function goToId() { const i = document.getElementById('target-id-input').value; if(i) viewProfile(i); }
+        function showWall() { viewProfile(myId); }
+        function createGroup() { const n = prompt("Название группы:"); if(n) _supabase.from('groups').insert([{name:n}]).then(loadGroups); }
         function initRealtime() {
-            _supabase.channel('msgs').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, payload => {
-                if(payload.new.chat_id === currentChatId) loadMessages();
+            _supabase.channel('any').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, (p) => {
+                if(p.new.sender_id != myId && currentChatId === p.new.chat_id) loadMessages();
             }).subscribe();
-        }
-
-        async function updateFollowCounts(id) {
-            const { count } = await _supabase.from('follows').select('*', { count: 'exact' }).eq('following_id', id);
-            document.getElementById('count-followers').innerText = count || 0;
-        }
-
-        async function checkFollowStatus(id) {
-            const { data } = await _supabase.from('follows').select('*').eq('follower_id', myId).eq('following_id', id).single();
-            const btn = document.getElementById('follow-btn');
-            btn.innerText = data ? "Отписаться" : "Подписаться";
-            btn.onclick = () => toggleFollow(id, !!data);
-        }
-
-        async function toggleFollow(id, isF) {
-            if(isF) await _supabase.from('follows').delete().eq('follower_id', myId).eq('following_id', id);
-            else await _supabase.from('follows').insert([{follower_id:myId, following_id:id}]);
-            viewProfile(id);
-        }
-
-        function createGroup() {
-            const n = prompt("Название канала/группы:");
-            if(n) _supabase.from('groups').insert([{name:n}]).then(loadGroups);
-        }
-        
-        async function loadFeed() {
-            switchTab('col-main');
-            document.getElementById('chat-window').style.display = 'none';
-            document.getElementById('messenger-list-screen').style.display = 'none';
-            document.getElementById('profile-screen').style.display = 'flex';
-            document.getElementById('wall-input-area').style.display = 'none';
-            
-            const { data } = await _supabase.from('posts').select('*').order('created_at', { ascending: false }).limit(30);
-            const wall = document.getElementById('wall-posts');
-            wall.innerHTML = '<div style="font-weight:bold; padding:10px; border-bottom:1px solid var(--border-ui);">НОВОСТИ СЕТИ</div>';
-            data?.forEach(p => {
-                const div = document.createElement('div');
-                div.className = 'post';
-                div.innerHTML = `
-                    <div class="post-header">
-                        <img src="${DEFAULT_AVATAR}" class="post-avatar">
-                        <div style="flex:1;">
-                            <b onclick="viewProfile('${p.author_id}')" style="cursor:pointer; color:var(--text-blue);">ID ${p.author_id}</b>
-                            <div style="margin-top:5px;">${p.text}</div>
-                        </div>
-                    </div>`;
-                wall.appendChild(div);
-            });
         }
     </script>
 </body>
