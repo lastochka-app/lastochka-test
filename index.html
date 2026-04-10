@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <title>ЛАСТОЧКА.ru v2.9.5</title>
+    <title>ЛАСТОЧКА.ru v2.9.6</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <style>
@@ -27,7 +27,7 @@
         .post { border-bottom: 2px solid #ECE9D8; padding: 10px 0; }
         .post-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
         .del-btn { color: #cc0000; border: none; background: none; cursor: pointer; font-size: 9px; font-weight: bold; }
-        .embedded-img { max-width: 100%; max-height: 250px; display: block; margin-top: 5px; border: 1px solid #D4D0C8; }
+        .embedded-img { max-width: 100%; max-height: 250px; display: block; margin-top: 5px; border: 1px solid #D4D0C8; cursor: pointer; }
         
         .like-row { margin-top: 5px; display: flex; align-items: center; gap: 6px; }
         .like-btn { color: #2D5082; background: #F0F0F0; border: 1px solid #D4D0C8; padding: 2px 8px; font-size: 10px; cursor: pointer; }
@@ -54,7 +54,7 @@
 <body>
 
     <div id="notification-container"></div>
-    <h1>ЛАСТОЧКА.ru v2.9.5</h1>
+    <h1>ЛАСТОЧКА.ru v2.9.6</h1>
 
     <div id="auth-box">
         <div class="card" style="width:280px;">
@@ -74,7 +74,7 @@
                 <img id="my-avatar-img" src="" style="width:50px; height:50px; border-radius:50%; border:1px solid #7EA4D0; object-fit: cover;">
                 <div id="display-nick" style="font-weight:bold; color:#2D5082; margin-top:5px;"></div>
             </div>
-            <button onclick="loadFeed()" style="width:100%; margin-bottom:10px; background: #e8f0f8;">Лента</button>
+            <button onclick="loadFeed()" style="width:100%; margin-bottom:10px; background: #e8f0f8;">ОБЩАЯ ЛЕНТА</button>
             <strong>ГРУППЫ:</strong>
             <div id="groups-list" class="scroll-area"></div>
             <button onclick="createGroup()" style="margin-top:5px;">+ СОЗДАТЬ</button>
@@ -103,7 +103,7 @@
                 </div>
 
                 <div id="wall-input-area" class="card">
-                    <textarea id="post-text" placeholder="Что нового?" rows="2"></textarea>
+                    <textarea id="post-text" placeholder="Что нового? (вставь ссылку на фото для картинки)" rows="2"></textarea>
                     <button onclick="createPost()" style="width:100%;">ОПУБЛИКОВАТЬ</button>
                 </div>
                 <div id="wall-posts" class="scroll-area"></div>
@@ -118,7 +118,8 @@
                 <div id="messages-list" class="scroll-area"></div>
                 <div class="card" style="margin-top:5px; display:flex; gap:5px;">
                     <input type="text" id="msg-input" placeholder="Введите сообщение..." onkeyup="if(event.keyCode===13) sendMessage()">
-                    <button onclick="sendMessage()">ОТПР.</button>
+                    <button onclick="sendImagePrompt()" style="background:#f0f0f0; width:45px;">ФОТО</button>
+                    <button onclick="sendMessage()" style="width:50px;">ОТПР.</button>
                 </div>
             </div>
         </div>
@@ -135,7 +136,7 @@
     <div class="mobile-nav" id="mob-nav">
         <button onclick="loadFeed()">ЛЕНТА</button>
         <button onclick="switchTab('col-left')">ЧАТЫ</button>
-        <button onclick="switchTab('col-main'); showWall();">Я</button>
+        <button onclick="switchTab('col-main'); showWall();">ПРОФИЛЬ</button>
         <button onclick="switchTab('col-right')">ЛЮДИ</button>
     </div>
 
@@ -166,7 +167,6 @@
             viewProfile(myId);
         }
 
-        // --- ЛЕНТА (ДО 50 ПОСТОВ) ---
         async function loadFeed() {
             switchTab('col-main');
             document.getElementById('chat-window').style.display = 'none';
@@ -174,28 +174,16 @@
             document.getElementById('profile-card').style.display = 'none';
             document.getElementById('wall-input-area').style.display = 'none';
             document.getElementById('inbox-area').style.display = 'none';
-
             const { data: posts } = await _supabase.from('posts').select('*').order('created_at', { ascending: false }).limit(50);
             const wall = document.getElementById('wall-posts');
-            wall.innerHTML = '<div style="background:#2D5082; color:white; padding:5px; margin-bottom:10px; font-weight:bold; text-align:center;">ОБЩАЯ ЛЕНТА</div>';
-            
+            wall.innerHTML = '<div style="background:#2D5082; color:white; padding:5px; margin-bottom:10px; font-weight:bold; text-align:center;">ЛЕНТА ПОСТОВ</div>';
             if(posts) {
-                // Рандомизация порядка (Shuffle)
                 const shuffled = posts.sort(() => 0.5 - Math.random());
                 shuffled.forEach(p => {
                     const isLiked = (p.liked_by || []).includes(String(myId));
                     const div = document.createElement('div');
                     div.className = 'post';
-                    div.innerHTML = `
-                        <div class="post-header">
-                            <b style="color:#2D5082; cursor:pointer;" onclick="viewProfile('${p.author_id}')">ID ${p.author_id}</b>
-                            <small style="color:#999;">${new Date(p.created_at).toLocaleDateString()}</small>
-                        </div>
-                        <div style="margin-top:3px;">${parseContent(p.text)}</div>
-                        <div class="like-row">
-                            <button onclick="toggleLike('${p.id}', null, true)" class="${isLiked?'like-btn active':'like-btn'}">Нравиться (${p.likes || 0})</button>
-                        </div>
-                    `;
+                    div.innerHTML = `<div class="post-header"><b style="color:#2D5082; cursor:pointer;" onclick="viewProfile('${p.author_id}')">ID ${p.author_id}</b><small style="color:#999;">${new Date(p.created_at).toLocaleDateString()}</small></div><div style="margin-top:3px;">${parseContent(p.text)}</div><div class="like-row"><button onclick="toggleLike('${p.id}', null, true)" class="${isLiked?'like-btn active':'like-btn'}">Нравиться (${p.likes || 0})</button></div>`;
                     wall.appendChild(div);
                 });
             }
@@ -247,20 +235,16 @@
             document.getElementById('chat-window').style.display = 'none';
             document.getElementById('profile-screen').style.display = 'flex';
             document.getElementById('profile-card').style.display = 'flex';
-            
             const { data: user } = await _supabase.from('users').select('*').eq('id_number', userId).single();
             if(!user) return;
-
             document.getElementById('view-avatar').src = user.avatar_url;
             document.getElementById('view-nick').innerText = user.nickname;
             document.getElementById('view-id-label').innerText = "ID: " + user.id_number;
-
             const isMe = (userId == myId);
             document.getElementById('wall-input-area').style.display = isMe ? 'block' : 'none';
             document.getElementById('inbox-area').style.display = isMe ? 'block' : 'none';
             document.getElementById('write-btn').style.display = isMe ? 'none' : 'block';
             document.getElementById('follow-btn').style.display = isMe ? 'none' : 'block';
-
             if(!isMe) {
                 document.getElementById('write-btn').onclick = () => openPrivate(user.id_number, user.nickname);
                 checkFollowStatus(userId);
@@ -278,16 +262,7 @@
                     const isLiked = (p.liked_by || []).includes(String(myId));
                     const div = document.createElement('div');
                     div.className = 'post';
-                    div.innerHTML = `
-                        <div class="post-header">
-                            <small style="color:#999;">${new Date(p.created_at).toLocaleDateString()}</small>
-                            ${p.author_id == myId ? `<button class="del-btn" onclick="deletePost('${p.id}')">[УДАЛИТЬ]</button>` : ''}
-                        </div>
-                        <div style="margin-top:3px;">${parseContent(p.text)}</div>
-                        <div class="like-row">
-                            <button onclick="toggleLike('${p.id}', '${userId}')" class="${isLiked?'like-btn active':'like-btn'}">Нравиться (${p.likes || 0})</button>
-                        </div>
-                    `;
+                    div.innerHTML = `<div class="post-header"><small style="color:#999;">${new Date(p.created_at).toLocaleDateString()}</small>${p.author_id == myId ? `<button class="del-btn" onclick="deletePost('${p.id}')">[УДАЛИТЬ]</button>` : ''}</div><div style="margin-top:3px;">${parseContent(p.text)}</div><div class="like-row"><button onclick="toggleLike('${p.id}', '${userId}')" class="${isLiked?'like-btn active':'like-btn'}">Нравиться (${p.likes || 0})</button></div>`;
                     wall.appendChild(div);
                 });
             }
@@ -343,6 +318,14 @@
             inp.value = ""; loadMessages();
         }
 
+        function sendImagePrompt() {
+            const url = prompt("Вставь URL картинки:");
+            if(url) {
+                document.getElementById('msg-input').value = url;
+                sendMessage();
+            }
+        }
+
         async function createPost() {
             const t = document.getElementById('post-text').value.trim();
             if(!t) return;
@@ -395,7 +378,7 @@
 
         function parseContent(str) {
             const urlPattern = /(https?:\/\/[^\s]+)/g;
-            return str.replace(urlPattern, (u) => u.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? `<img src="${u}" class="embedded-img">` : `<a href="${u}" target="_blank" style="color:#2D5082;">${u}</a>`);
+            return str.replace(urlPattern, (u) => u.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? `<img src="${u}" class="embedded-img" onclick="window.open('${u}')">` : `<a href="${u}" target="_blank" style="color:#2D5082;">${u}</a>`);
         }
 
         function showWall() { viewProfile(myId); }
