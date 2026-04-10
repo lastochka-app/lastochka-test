@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <title>ЛАСТОЧКА.ru v2.9.3</title>
+    <title>ЛАСТОЧКА.ru v2.9.5</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <style>
@@ -29,7 +29,6 @@
         .del-btn { color: #cc0000; border: none; background: none; cursor: pointer; font-size: 9px; font-weight: bold; }
         .embedded-img { max-width: 100%; max-height: 250px; display: block; margin-top: 5px; border: 1px solid #D4D0C8; }
         
-        /* Лайки */
         .like-row { margin-top: 5px; display: flex; align-items: center; gap: 6px; }
         .like-btn { color: #2D5082; background: #F0F0F0; border: 1px solid #D4D0C8; padding: 2px 8px; font-size: 10px; cursor: pointer; }
         .like-btn.active { background: #2D5082; color: white; border-color: #2D5082; }
@@ -55,7 +54,7 @@
 <body>
 
     <div id="notification-container"></div>
-    <h1>ЛАСТОЧКА.ru v2.9.3</h1>
+    <h1>ЛАСТОЧКА.ru v2.9.5</h1>
 
     <div id="auth-box">
         <div class="card" style="width:280px;">
@@ -75,6 +74,7 @@
                 <img id="my-avatar-img" src="" style="width:50px; height:50px; border-radius:50%; border:1px solid #7EA4D0; object-fit: cover;">
                 <div id="display-nick" style="font-weight:bold; color:#2D5082; margin-top:5px;"></div>
             </div>
+            <button onclick="loadFeed()" style="width:100%; margin-bottom:10px; background: #e8f0f8;">⭐ ОБЩАЯ ЛЕНТА</button>
             <strong>ГРУППЫ:</strong>
             <div id="groups-list" class="scroll-area"></div>
             <button onclick="createGroup()" style="margin-top:5px;">+ СОЗДАТЬ</button>
@@ -82,7 +82,7 @@
 
         <div class="column active-mob" id="col-main">
             <div id="profile-screen" style="display:flex; flex-direction:column; height:100%;">
-                <div class="card" style="display:flex; align-items:center; gap:10px;">
+                <div id="profile-card" class="card" style="display:flex; align-items:center; gap:10px;">
                     <img id="view-avatar" style="width:60px; height:60px; border-radius:50%; object-fit:cover; border:1px solid #7EA4D0;">
                     <div style="flex:1;">
                         <b id="view-nick" style="font-size:14px; color:#2D5082;"></b><br>
@@ -133,8 +133,9 @@
     </div>
 
     <div class="mobile-nav" id="mob-nav">
+        <button onclick="loadFeed()">ЛЕНТА</button>
         <button onclick="switchTab('col-left')">ЧАТЫ</button>
-        <button onclick="switchTab('col-main'); showWall();">ПРОФИЛЬ</button>
+        <button onclick="switchTab('col-main'); showWall();">Я</button>
         <button onclick="switchTab('col-right')">ЛЮДИ</button>
     </div>
 
@@ -145,27 +146,18 @@
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         let myId, myNick, currentChatId;
-        // Твоя ссылка-заглушка
         const DEFAULT_AVATAR = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRLCFpHxyg6G5c4uQQy6U5SlgJr6qq6P6ot7Q&s";
 
-        async function toggleLike(postId, authorId) {
+        async function toggleLike(postId, authorId, isFeed = false) {
             const { data: post } = await _supabase.from('posts').select('likes, liked_by').eq('id', postId).single();
             if (!post) return;
-
             let likedBy = post.liked_by || [];
             let likesCount = parseInt(post.likes) || 0;
             const uid = String(myId);
-
-            if (likedBy.includes(uid)) {
-                likedBy = likedBy.filter(i => i !== uid);
-                likesCount = Math.max(0, likesCount - 1);
-            } else {
-                likedBy.push(uid);
-                likesCount++;
-            }
-
+            if (likedBy.includes(uid)) { likedBy = likedBy.filter(i => i !== uid); likesCount = Math.max(0, likesCount - 1); } 
+            else { likedBy.push(uid); likesCount++; }
             await _supabase.from('posts').update({ likes: likesCount, liked_by: likedBy }).eq('id', postId);
-            loadPosts(authorId);
+            if(isFeed) loadFeed(); else loadPosts(authorId);
         }
 
         async function deletePost(postId) {
@@ -174,14 +166,47 @@
             viewProfile(myId);
         }
 
+        // --- ЛЕНТА (ДО 50 ПОСТОВ) ---
+        async function loadFeed() {
+            switchTab('col-main');
+            document.getElementById('chat-window').style.display = 'none';
+            document.getElementById('profile-screen').style.display = 'flex';
+            document.getElementById('profile-card').style.display = 'none';
+            document.getElementById('wall-input-area').style.display = 'none';
+            document.getElementById('inbox-area').style.display = 'none';
+
+            const { data: posts } = await _supabase.from('posts').select('*').order('created_at', { ascending: false }).limit(50);
+            const wall = document.getElementById('wall-posts');
+            wall.innerHTML = '<div style="background:#2D5082; color:white; padding:5px; margin-bottom:10px; font-weight:bold; text-align:center;">ОБЩАЯ ЛЕНТА</div>';
+            
+            if(posts) {
+                // Рандомизация порядка (Shuffle)
+                const shuffled = posts.sort(() => 0.5 - Math.random());
+                shuffled.forEach(p => {
+                    const isLiked = (p.liked_by || []).includes(String(myId));
+                    const div = document.createElement('div');
+                    div.className = 'post';
+                    div.innerHTML = `
+                        <div class="post-header">
+                            <b style="color:#2D5082; cursor:pointer;" onclick="viewProfile('${p.author_id}')">ID ${p.author_id}</b>
+                            <small style="color:#999;">${new Date(p.created_at).toLocaleDateString()}</small>
+                        </div>
+                        <div style="margin-top:3px;">${parseContent(p.text)}</div>
+                        <div class="like-row">
+                            <button onclick="toggleLike('${p.id}', null, true)" class="${isLiked?'like-btn active':'like-btn'}">Нравиться (${p.likes || 0})</button>
+                        </div>
+                    `;
+                    wall.appendChild(div);
+                });
+            }
+        }
+
         function showToast(senderId, text) {
             const container = document.getElementById('notification-container');
-            const t = document.createElement('div');
-            t.className = 'toast';
+            const t = document.createElement('div'); t.className = 'toast';
             t.innerHTML = `<b>ID ${senderId}:</b> ${text.substring(0,25)}...`;
             t.onclick = () => viewProfile(senderId);
-            container.appendChild(t);
-            setTimeout(() => t.remove(), 5000);
+            container.appendChild(t); setTimeout(() => t.remove(), 5000);
         }
 
         function initRealtime() {
@@ -203,12 +228,8 @@
             const id = document.getElementById('my-id-input').value;
             const pass = document.getElementById('my-pass-input').value;
             const nick = document.getElementById('my-nick-input').value;
-            // Проверка на пустую аватарку
             let av = document.getElementById('my-avatar-input').value.trim() || DEFAULT_AVATAR;
-
-            if (mode === 'reg') {
-                await _supabase.from('users').insert([{ id_number: id, password: pass, nickname: nick, avatar_url: av }]);
-            }
+            if (mode === 'reg') { await _supabase.from('users').insert([{ id_number: id, password: pass, nickname: nick, avatar_url: av }]); }
             const { data: user } = await _supabase.from('users').select('*').eq('id_number', id).eq('password', pass).single();
             if (user) {
                 myId = id; myNick = user.nickname;
@@ -225,6 +246,7 @@
             switchTab('col-main');
             document.getElementById('chat-window').style.display = 'none';
             document.getElementById('profile-screen').style.display = 'flex';
+            document.getElementById('profile-card').style.display = 'flex';
             
             const { data: user } = await _supabase.from('users').select('*').eq('id_number', userId).single();
             if(!user) return;
