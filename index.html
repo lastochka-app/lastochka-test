@@ -1,1 +1,246 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <title>ЛАСТОЧКА.ru v2.9.0</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <style>
+        /* --- СИСТЕМА ТЕМ --- */
+        :root { --bg: #ECE9D8; --panel: #F0F0F0; --accent: #2D5082; --border: #7EA4D0; }
 
+        /* 1. PC КЛАССИКА (Default) */
+        body[data-theme="pc"] { --bg: #ECE9D8; --panel: #F0F0F0; --accent: #2D5082; }
+        
+        /* 2. MOBILE MODERN */
+        body[data-theme="mobile"] { --bg: #f5f5f7; --panel: #ffffff; --accent: #007aff; --border: #e5e5e5; }
+        body[data-theme="mobile"] .column { border: none; border-radius: 15px; margin: 5px; }
+        body[data-theme="mobile"] button { border-radius: 8px; background: var(--accent); color: white; border: none; }
+
+        /* 3. INSTA 2010 (Retro Blue) */
+        body[data-theme="insta"] { --bg: #3f729b; --panel: #fafafa; --accent: #125688; --border: #aaaaaa; }
+        body[data-theme="insta"] h1 { background: #125688 !important; color: white !important; font-family: 'Comic Sans MS', cursive; }
+        body[data-theme="insta"] .post { border: 1px solid #ddd; margin-bottom: 10px; padding: 10px; background: #fff; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        body[data-theme="insta"] .card { border-radius: 0; border: 1px solid #ccc; }
+
+        /* БАЗОВЫЙ CSS */
+        html, body { height: 100%; margin: 0; padding: 0; overflow: hidden; background-color: var(--bg); font-family: Tahoma, sans-serif; font-size: 12px; transition: 0.3s; }
+        body { display: flex; flex-direction: column; }
+        h1 { color: var(--accent); font-size: 18px; margin: 0; padding: 8px; text-align: center; flex-shrink: 0; background: #fff; border-bottom: 1px solid var(--border); }
+        
+        #main-ui { display: none; flex: 1; width: 100%; max-width: 1400px; margin: 0 auto; padding: 10px; box-sizing: border-box; gap: 10px; overflow: hidden; }
+        .column { display: flex; flex-direction: column; background: var(--panel); border: 1px solid #D4D0C8; padding: 8px; height: 100%; box-sizing: border-box; }
+        
+        #col-left { width: 190px; flex-shrink: 0; }
+        #col-main { flex: 1; background: white; border: 1px solid var(--border); }
+        #col-right { width: 250px; flex-shrink: 0; }
+
+        .card { border: 1px solid var(--border); background: #fff; padding: 8px; margin-bottom: 8px; }
+        button { background: linear-gradient(to bottom, #ffffff 0%, #e0e0e0 100%); border: 1px solid #707070; padding: 4px; cursor: pointer; font-weight: bold; }
+        input, textarea { border: 1px solid var(--border); padding: 5px; margin: 3px 0; width: 100%; box-sizing: border-box; }
+        
+        .scroll-area { flex: 1; overflow-y: auto; background: white; border: 1px solid var(--border); padding: 5px; }
+        .post { border-bottom: 1px solid #eee; padding: 8px 0; }
+        .embedded-img { max-width: 100%; border: 1px solid #ccc; margin-top: 5px; }
+        
+        /* Навигация */
+        .mobile-nav { display: none; background: #D4D0C8; height: 45px; justify-content: space-around; align-items: center; border-top: 1px solid #808080; }
+        
+        @media (max-width: 768px) {
+            .column { display: none; width: 100% !important; }
+            .column.active-mob { display: flex; }
+            .mobile-nav { display: flex; }
+        }
+
+        .theme-selector { margin: 10px 0; padding: 5px; background: #eee; border: 1px solid #ccc; border-radius: 4px; }
+    </style>
+</head>
+<body data-theme="pc">
+
+    <h1>ЛАСТОЧКА.ru</h1>
+
+    <div id="auth-box" style="flex:1; display:flex; justify-content:center; align-items:center;">
+        <div class="card" style="width:300px;">
+            <strong>ВХОД</strong>
+            <div class="theme-selector">
+                <small>ИНТЕРФЕЙС:</small>
+                <select id="theme-select-auth" onchange="changeTheme(this.value)">
+                    <option value="pc">PC (Classic)</option>
+                    <option value="mobile">Mobile (Modern)</option>
+                    <option value="insta">Insta (2010)</option>
+                </select>
+            </div>
+            <input type="number" id="my-id-input" placeholder="ID">
+            <input type="password" id="my-pass-input" placeholder="Пароль">
+            <button onclick="handleAuth()" style="width:100%; margin-top:5px;">ВОЙТИ</button>
+        </div>
+    </div>
+
+    <div id="main-ui">
+        <div class="column" id="col-left">
+            <div class="card" style="text-align:center;">
+                <img id="my-avatar-img" src="" style="width:50px; height:50px; border-radius:50%; border:1px solid var(--border);">
+                <div id="display-nick" style="font-weight:bold; color:var(--accent);"></div>
+                <select onchange="changeTheme(this.value)" style="font-size:9px; margin-top:5px;">
+                    <option value="pc">PC Style</option>
+                    <option value="mobile">Mobile Style</option>
+                    <option value="insta">Insta 2010</option>
+                </select>
+            </div>
+            <strong>ГРУППЫ:</strong>
+            <div id="groups-list" class="scroll-area"></div>
+        </div>
+
+        <div class="column active-mob" id="col-main">
+            <div id="profile-screen" style="display:flex; flex-direction:column; height:100%;">
+                <div class="card" style="display:flex; gap:10px;">
+                    <img id="view-avatar" style="width:60px; height:60px; border-radius:50%; border:1px solid var(--border);">
+                    <div>
+                        <b id="view-nick" style="font-size:14px;"></b><br>
+                        <small id="view-id-label"></small>
+                    </div>
+                </div>
+                <div id="inbox-area" class="card" style="display:none; background:#eef;">
+                    <small>Входящие:</small>
+                    <div id="inbox-list"></div>
+                </div>
+                <div id="wall-input-area" class="card">
+                    <textarea id="post-text" placeholder="Что нового?"></textarea>
+                    <button onclick="createPost()" style="width:100%;">ПОСТ</button>
+                </div>
+                <div id="wall-posts" class="scroll-area"></div>
+            </div>
+
+            <div id="chat-window" style="display:none; flex-direction:column; height:100%;">
+                <div style="background:var(--accent); color:white; padding:5px; display:flex; justify-content:space-between;">
+                    <button onclick="switchTab('col-left')">Назад</button>
+                    <span id="chat-title">Чат</span>
+                    <span></span>
+                </div>
+                <div id="messages-list" class="scroll-area"></div>
+                <div class="card" style="display:flex; gap:5px;">
+                    <input type="text" id="msg-input" placeholder="Текст...">
+                    <button onclick="sendMessage()">ОТПР.</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="column" id="col-right">
+            <strong>ПОИСК ПО ID:</strong>
+            <input type="number" id="target-id-input">
+            <button onclick="goToId()" style="width:100%;">НАЙТИ</button>
+            <br>
+            <strong>ЛЮДИ:</strong>
+            <div id="users-list" class="scroll-area"></div>
+        </div>
+    </div>
+
+    <div class="mobile-nav">
+        <button onclick="switchTab('col-left')">МЕНЮ</button>
+        <button onclick="switchTab('col-main'); showWall();">СТЕНА</button>
+        <button onclick="switchTab('col-right')">ЛЮДИ</button>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        const SUPABASE_URL = 'https://xjekyaiyfvtjtkinlmbv.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_Nne-WFtskhN6oEkYkgtWhA_KHo2W8YC'; 
+        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        let myId, currentChatId;
+
+        // ФУНКЦИЯ СМЕНЫ ТЕМЫ
+        function changeTheme(themeName) {
+            document.body.setAttribute('data-theme', themeName);
+            localStorage.setItem('last-theme', themeName);
+        }
+
+        // Загрузка сохраненной темы
+        const savedTheme = localStorage.getItem('last-theme');
+        if(savedTheme) changeTheme(savedTheme);
+
+        async function handleAuth() {
+            const id = document.getElementById('my-id-input').value;
+            const pass = document.getElementById('my-pass-input').value;
+            const { data: user } = await _supabase.from('users').select('*').eq('id_number', id).eq('password', pass).single();
+            if(user) {
+                myId = id;
+                document.getElementById('auth-box').style.display = 'none';
+                document.getElementById('main-ui').style.display = 'flex';
+                document.getElementById('my-avatar-img').src = user.avatar_url;
+                document.getElementById('display-nick').innerText = user.nickname;
+                viewProfile(myId); loadGroups(); loadUsers();
+            } else alert("Ошибка!");
+        }
+
+        async function viewProfile(userId) {
+            switchTab('col-main');
+            document.getElementById('chat-window').style.display = 'none';
+            document.getElementById('profile-screen').style.display = 'flex';
+            const { data: user } = await _supabase.from('users').select('*').eq('id_number', userId).single();
+            if(!user) return;
+            document.getElementById('view-avatar').src = user.avatar_url;
+            document.getElementById('view-nick').innerText = user.nickname;
+            document.getElementById('view-id-label').innerText = "ID: " + user.id_number;
+            document.getElementById('wall-input-area').style.display = (userId == myId) ? 'block' : 'none';
+            loadPosts(userId);
+        }
+
+        async function loadPosts(userId) {
+            const { data: posts } = await _supabase.from('posts').select('*').eq('author_id', userId).order('created_at', { ascending: false });
+            const wall = document.getElementById('wall-posts');
+            wall.innerHTML = (posts || []).map(p => `
+                <div class="post">
+                    <small>${new Date(p.created_at).toLocaleDateString()}</small>
+                    <div>${p.text}</div>
+                    <div style="margin-top:5px;">
+                        <button onclick="toggleLike('${p.id}')" class="${(p.liked_by||[]).includes(String(myId))?'active':''}">ЛАЙК</button>
+                        <b>${p.likes || 0}</b>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function toggleLike(postId) {
+            const { data: post } = await _supabase.from('posts').select('likes, liked_by').eq('id', postId).single();
+            let lb = post.liked_by || [];
+            let c = post.likes || 0;
+            const uid = String(myId);
+            if(lb.includes(uid)) { lb = lb.filter(i => i != uid); c--; }
+            else { lb.push(uid); c++; }
+            await _supabase.from('posts').update({ likes: c, liked_by: lb }).eq('id', postId);
+            loadPosts(post.author_id);
+        }
+
+        function switchTab(id) {
+            document.querySelectorAll('.column').forEach(c => c.classList.remove('active-mob'));
+            document.getElementById(id).classList.add('active-mob');
+        }
+
+        async function loadGroups() {
+            const { data } = await _supabase.from('groups').select('*');
+            document.getElementById('groups-list').innerHTML = (data || []).map(g => `<div class="card" onclick="startGroup('${g.id}','${g.name}')">${g.name}</div>`).join('');
+        }
+
+        function startGroup(id, name) {
+            currentChatId = "group_" + id;
+            document.getElementById('profile-screen').style.display = 'none';
+            document.getElementById('chat-window').style.display = 'flex';
+            document.getElementById('chat-title').innerText = name;
+            switchTab('col-main');
+        }
+
+        async function createPost() {
+            const t = document.getElementById('post-text').value;
+            await _supabase.from('posts').insert([{ author_id: myId, text: t, likes: 0, liked_by: [] }]);
+            viewProfile(myId);
+        }
+
+        function showWall() { viewProfile(myId); }
+        function goToId() { const i = document.getElementById('target-id-input').value; viewProfile(i); }
+        async function loadUsers() {
+            const { data } = await _supabase.from('users').select('*');
+            document.getElementById('users-list').innerHTML = (data || []).map(u => `<div onclick="viewProfile('${u.id_number}')">${u.nickname}</div>`).join('');
+        }
+    </script>
+</body>
+</html>
