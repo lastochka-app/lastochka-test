@@ -54,7 +54,6 @@
         
         .tab-header { border-bottom: 2px solid var(--border-accent); color: var(--text-blue); padding: 5px; margin-bottom: 10px; font-weight: bold; text-align: center; }
 
-        /* ЧАТ СООБЩЕНИЯ */
         .msg-container { display: flex; gap: 8px; margin-bottom: 10px; align-items: flex-start; }
         .msg-avatar { width: 32px; height: 32px; border: 1px solid var(--border-accent); border-radius: 4px; object-fit: cover; }
         .msg-content { flex: 1; background: var(--bg-col); padding: 6px; border: 1px solid var(--border-ui); border-radius: 2px; }
@@ -89,7 +88,7 @@
     <div id="auth-box">
         <div class="card" style="width:280px;">
             <strong>ВХОД В СИСТЕМУ</strong>
-            <input type="number" id="my-id-input" placeholder="Ваш ID">
+            <input type="text" id="my-id-input" placeholder="Ваш ID">
             <input type="text" id="my-nick-input" placeholder="Никнейм (Обязательно для рег.)">
             <input type="password" id="my-pass-input" placeholder="Пароль">
             <input type="text" id="my-avatar-input" placeholder="URL аватара (опционально)">
@@ -161,7 +160,7 @@
 
         <div class="column" id="col-right">
             <strong>ПОИСК ПО ID:</strong>
-            <div style="display:flex; gap:2px;"><input type="number" id="target-id-input"><button onclick="goToId()">GO</button></div>
+            <div style="display:flex; gap:2px;"><input type="text" id="target-id-input"><button onclick="goToId()">GO</button></div>
             <br>
             <strong>ПОЛЬЗОВАТЕЛИ:</strong>
             <div id="users-list" class="scroll-area"></div>
@@ -178,8 +177,9 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
+        // ВСТАВЬ СВОИ ДАННЫЕ ИЗ SUPABASE SETTINGS -> API
         const SUPABASE_URL = 'https://xjekyaiyfvtjtkinlmbv.supabase.co';
-        const SUPABASE_KEY = 'sb_publishable_Nne-WFtskhN6oEkYkgtWhA_KHo2W8YC'; 
+        const SUPABASE_KEY = 'ВАШ_API_KEY'; 
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         let myId, myNick, currentChatId;
@@ -191,25 +191,23 @@
             else document.documentElement.removeAttribute('data-theme');
             localStorage.setItem('theme', theme);
         }
-        const savedTheme = localStorage.getItem('theme');
-        if (savedTheme) setTheme(savedTheme);
+        if (localStorage.getItem('theme')) setTheme(localStorage.getItem('theme'));
 
         async function handleAuth(mode) {
-            const id = document.getElementById('my-id-input').value;
-            const pass = document.getElementById('my-pass-input').value;
-            const nick = document.getElementById('my-nick-input').value;
+            const id = document.getElementById('my-id-input').value.trim();
+            const pass = document.getElementById('my-pass-input').value.trim();
+            const nick = document.getElementById('my-nick-input').value.trim();
             let av = document.getElementById('my-avatar-input').value.trim() || DEFAULT_AVATAR;
 
+            if (!id || !pass) return alert("Введите ID и пароль!");
+
             if (mode === 'reg') {
-                // ПРОВЕРКА НА ПУСТОЙ НИК
-                if (!nick.trim()) {
-                    alert("ОШИБКА: Поле 'Никнейм' обязательно при регистрации!");
-                    return;
-                }
-                await _supabase.from('users').insert([{ id_number: id, password: pass, nickname: nick, avatar_url: av }]);
+                if (!nick) return alert("Никнейм обязателен для регистрации!");
+                const { error } = await _supabase.from('users').insert([{ id_number: id, password: pass, nickname: nick, avatar_url: av }]);
+                if (error) return alert("Ошибка регистрации: " + error.message);
             }
 
-            const { data: user } = await _supabase.from('users').select('*').eq('id_number', id).eq('password', pass).single();
+            const { data: user, error } = await _supabase.from('users').select('*').eq('id_number', id).eq('password', pass).single();
             
             if (user) {
                 myId = id; myNick = user.nickname;
@@ -227,21 +225,26 @@
             document.getElementById('chat-window').style.display = 'none';
             document.getElementById('profile-screen').style.display = 'flex';
             document.getElementById('profile-card').style.display = 'flex';
+
             const { data: user } = await _supabase.from('users').select('*').eq('id_number', userId).single();
             if(!user) return;
+
             document.getElementById('view-avatar').src = user.avatar_url;
             document.getElementById('view-nick').innerText = user.nickname;
             document.getElementById('view-id-label').innerText = "ID: " + user.id_number;
-            const isMe = (userId == myId);
+
+            const isMe = (String(userId) === String(myId));
             document.getElementById('wall-input-area').style.display = isMe ? 'block' : 'none';
             document.getElementById('inbox-area').style.display = isMe ? 'block' : 'none';
             document.getElementById('write-btn').style.display = isMe ? 'none' : 'block';
             document.getElementById('follow-btn').style.display = isMe ? 'none' : 'block';
             document.getElementById('fav-btn').style.display = isMe ? 'none' : 'block';
+
             if(!isMe) {
                 document.getElementById('write-btn').onclick = () => openPrivate(user.id_number, user.nickname);
                 checkFollowStatus(userId); checkFavoriteStatus(userId);
             } else loadInbox();
+
             updateFollowCounts(userId); loadPosts(userId);
         }
 
@@ -249,18 +252,21 @@
             if(!currentChatId) return;
             const { data: messages } = await _supabase.from('messages').select('*').eq('chat_id', currentChatId).order('created_at', { ascending: true });
             const box = document.getElementById('messages-list');
+            
             const senderIds = [...new Set((messages || []).map(m => m.sender_id))];
-            const { data: users } = await _supabase.from('users').select('id_number, nickname, avatar_url').in('id_number', senderIds);
-            if(users) users.forEach(u => userCache[u.id_number] = u);
+            if(senderIds.length > 0) {
+                const { data: users } = await _supabase.from('users').select('id_number, nickname, avatar_url').in('id_number', senderIds);
+                if(users) users.forEach(u => userCache[u.id_number] = u);
+            }
 
             box.innerHTML = (messages || []).map(m => {
-                const user = userCache[m.sender_id] || { nickname: 'User', avatar_url: DEFAULT_AVATAR };
+                const user = userCache[m.sender_id] || { nickname: 'ID ' + m.sender_id, avatar_url: DEFAULT_AVATAR };
                 return `
                     <div class="msg-container">
                         <img src="${user.avatar_url}" class="msg-avatar">
                         <div class="msg-content">
                             <div class="msg-info">
-                                <b>${user.nickname} (ID: ${m.sender_id})</b>
+                                <b>${user.nickname}</b>
                                 <span>${new Date(m.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
                             </div>
                             <div>${parseContent(m.text)}</div>
@@ -277,8 +283,43 @@
             inp.value = ""; loadMessages();
         }
 
-        async function openPrivate(id, nick) {
-            currentChatId = [myId, id].sort().join("_");
+        function initRealtime() {
+            _supabase.channel('public:messages').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, (payload) => {
+                const m = payload.new;
+                if(m.sender_id != myId) {
+                    if(currentChatId === m.chat_id) loadMessages();
+                    else if(m.chat_id.includes(myId) || m.chat_id.startsWith("group_")) showToast(m.sender_id, m.text);
+                }
+            }).subscribe();
+        }
+
+        async function createPost() {
+            const t = document.getElementById('post-text').value.trim();
+            if(!t) return;
+            await _supabase.from('posts').insert([{ author_id: myId, text: t, likes: 0, liked_by: [] }]);
+            document.getElementById('post-text').value = ""; viewProfile(myId);
+        }
+
+        async function toggleLike(postId, authorId, isFeed = false) {
+            const { data: post } = await _supabase.from('posts').select('likes, liked_by').eq('id', postId).single();
+            if (!post) return;
+            let likedBy = post.liked_by || [];
+            let likesCount = post.likes || 0;
+            const uid = String(myId);
+
+            if (likedBy.includes(uid)) {
+                likedBy = likedBy.filter(i => i !== uid);
+                likesCount = Math.max(0, likesCount - 1);
+            } else {
+                likedBy.push(uid);
+                likesCount++;
+            }
+            await _supabase.from('posts').update({ likes: likesCount, liked_by: likedBy }).eq('id', postId);
+            if(isFeed) loadFeed(); else loadPosts(authorId);
+        }
+
+        function openPrivate(id, nick) {
+            currentChatId = [String(myId), String(id)].sort().join("_");
             document.getElementById('profile-screen').style.display = 'none';
             document.getElementById('chat-window').style.display = 'flex';
             document.getElementById('chat-title').innerText = nick;
@@ -327,16 +368,10 @@
             }
         }
 
-        function initRealtime() {
-            _supabase.channel('any').on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, (payload) => {
-                if(payload.eventType === 'INSERT') {
-                    const m = payload.new;
-                    if(m.sender_id != myId) {
-                        if(currentChatId === m.chat_id) loadMessages();
-                        else if(m.chat_id.includes(myId) || m.chat_id.startsWith("group_")) showToast(m.sender_id, m.text);
-                    }
-                }
-            }).subscribe();
+        async function deletePost(postId) {
+            if(!confirm("Удалить этот пост?")) return;
+            await _supabase.from('posts').delete().eq('id', postId).eq('author_id', myId);
+            viewProfile(myId);
         }
 
         function showToast(senderId, text) {
@@ -349,14 +384,17 @@
 
         function showWall() { viewProfile(myId); }
         function goToId() { const i = document.getElementById('target-id-input').value; if(i) viewProfile(i); }
+        
         async function loadUsers() {
             const { data } = await _supabase.from('users').select('*');
             if(data) document.getElementById('users-list').innerHTML = data.map(u => `<div style="padding:4px; border-bottom:1px solid var(--border-ui); cursor:pointer;" onclick="viewProfile('${u.id_number}')"><img src="${u.avatar_url}" style="width:18px; height:18px; border-radius:50%; vertical-align:middle;"> ${u.nickname}</div>`).join('');
         }
+
         async function loadGroups() {
             const { data } = await _supabase.from('groups').select('*');
             if(data) document.getElementById('groups-list').innerHTML = data.map(g => `<div class="card" style="cursor:pointer; font-size:10px;" onclick="startGroupChat('${g.id}','${g.name}')"># ${g.name}</div>`).join('');
         }
+
         function startGroupChat(id, name) {
             currentChatId = "group_" + id;
             document.getElementById('profile-screen').style.display = 'none';
@@ -364,6 +402,13 @@
             document.getElementById('chat-title').innerText = name;
             switchTab('col-main'); loadMessages();
         }
+
+        async function toggleFollow(id, isF) {
+            if(isF) await _supabase.from('follows').delete().eq('follower_id', myId).eq('following_id', id);
+            else await _supabase.from('follows').insert([{follower_id:myId, following_id:id}]);
+            viewProfile(id);
+        }
+
         async function checkFollowStatus(id) {
             const { data } = await _supabase.from('follows').select('*').eq('follower_id', myId).eq('following_id', id).single();
             const btn = document.getElementById('follow-btn');
@@ -372,58 +417,36 @@
                 btn.onclick = () => toggleFollow(id, !!data);
             }
         }
-        async function toggleFollow(id, isF) {
-            if(isF) await _supabase.from('follows').delete().eq('follower_id', myId).eq('following_id', id);
-            else await _supabase.from('follows').insert([{follower_id:myId, following_id:id}]);
-            viewProfile(id);
-        }
+
         async function updateFollowCounts(id) {
-            const { count: f1 } = await _supabase.from('follows').select('*', { count: 'exact' }).eq('following_id', id);
-            const { count: f2 } = await _supabase.from('follows').select('*', { count: 'exact' }).eq('follower_id', id);
+            const { count: f1 } = await _supabase.from('follows').select('*', { count: 'exact', head: true }).eq('following_id', id);
+            const { count: f2 } = await _supabase.from('follows').select('*', { count: 'exact', head: true }).eq('follower_id', id);
             document.getElementById('count-followers').innerText = f1 || 0;
             document.getElementById('count-following').innerText = f2 || 0;
         }
+
         async function checkFavoriteStatus(id) {
             const btn = document.getElementById('fav-btn');
+            const { data } = await _supabase.from('favorites').select('*').eq('user_id', myId).eq('favorite_id', id).single();
             if(btn) {
-                const { data } = await _supabase.from('favorites').select('*').eq('user_id', myId).eq('favorite_id', id).single();
                 btn.innerText = data ? "УДАЛИТЬ ИЗ ИЗБРАННОГО" : "В ИЗБРАННОЕ";
                 btn.onclick = () => toggleFavorite(id, !!data);
             }
         }
+
         async function toggleFavorite(id, isFav) {
             if(isFav) await _supabase.from('favorites').delete().eq('user_id', myId).eq('favorite_id', id);
             else await _supabase.from('favorites').insert([{user_id: myId, favorite_id: id}]);
             checkFavoriteStatus(id);
         }
+
         function sendImagePrompt() {
             const url = prompt("Вставь URL картинки:");
             if(url) { document.getElementById('msg-input').value = url; sendMessage(); }
         }
-        async function createPost() {
-            const t = document.getElementById('post-text').value.trim();
-            if(!t) return;
-            await _supabase.from('posts').insert([{ author_id: myId, text: t, likes: 0, liked_by: [] }]);
-            document.getElementById('post-text').value = ""; viewProfile(myId);
-        }
-        async function deletePost(postId) {
-            if(!confirm("Удалить этот пост?")) return;
-            await _supabase.from('posts').delete().eq('id', postId).eq('author_id', myId);
-            viewProfile(myId);
-        }
-        async function toggleLike(postId, authorId, isFeed = false) {
-            const { data: post } = await _supabase.from('posts').select('likes, liked_by').eq('id', postId).single();
-            if (!post) return;
-            let likedBy = post.liked_by || [];
-            let likesCount = parseInt(post.likes) || 0;
-            const uid = String(myId);
-            if (likedBy.includes(uid)) { likedBy = likedBy.filter(i => i !== uid); likesCount = Math.max(0, likesCount - 1); } 
-            else { likedBy.push(uid); likesCount++; }
-            await _supabase.from('posts').update({ likes: likesCount, liked_by: likedBy }).eq('id', postId);
-            if(isFeed) loadFeed(); else loadPosts(authorId);
-        }
+
         async function loadInbox() {
-            const { data } = await _supabase.from('messages').select('*').order('created_at', { ascending: false }).limit(40);
+            const { data } = await _supabase.from('messages').select('*').order('created_at', { ascending: false }).limit(60);
             const list = document.getElementById('inbox-list');
             if(!data) return;
             const res = []; const seen = new Set();
@@ -436,6 +459,7 @@
             }
             list.innerHTML = res.map(m => `<div style="border-bottom:1px dashed #CCC; padding:3px 0; cursor:pointer;" onclick="openChatById('${m.chat_id}')"><b>${m.chat_id.startsWith('group_')?'ГРУППА':'ID '+m.sender_id}:</b> ${m.text.substring(0,25)}</div>`).join('');
         }
+
         async function openChatById(chatId) {
             if(chatId.startsWith("group_")) {
                 const gid = chatId.replace("group_", "");
@@ -447,6 +471,7 @@
                 if(data) openPrivate(tid, data.nickname);
             }
         }
+
         function createGroup() { const n = prompt("Название группы:"); if(n) _supabase.from('groups').insert([{name:n}]).then(loadGroups); }
         function showAbout() {
             clearMainArea();
@@ -456,9 +481,10 @@
                 <div class="card" style="line-height:1.6; text-align:center; padding:30px;">
                     <strong style="font-size:16px; color:var(--text-blue);">Ласточка.ru</strong><br>
                     Все права защищены!<br><br>
-                    Ласточка.ru ето мессенджер где вашы данные будут защищены!.
+                    Ласточка.ru — это мессенджер, где ваши данные будут защищены!
                 </div>`;
         }
+
         function showSettings() {
             clearMainArea();
             const wall = document.getElementById('wall-posts');
@@ -472,19 +498,21 @@
                     <button onclick="updateProfile()" style="width:100%; margin-top:10px;">СОХРАНИТЬ ИЗМЕНЕНИЯ</button>
                 </div>
                 <div class="card" style="text-align:center;">
-                    <strong>ТЕМА ИНТЕРФЕЙСЯ:</strong><br><br>
+                    <strong>ТЕМА ИНТЕРФЕЙСА:</strong><br><br>
                     <button onclick="setTheme('light')">СВЕТЛАЯ КЛАССИКА</button>
                     <button onclick="setTheme('dark')">ТЕМНАЯ НОЧЬ</button>
                 </div>`;
         }
+
         async function updateProfile() {
             const nick = document.getElementById('set-nick').value;
             const av = document.getElementById('set-av').value;
             let up = { nickname: nick };
             if(av) up.avatar_url = av;
             const { error } = await _supabase.from('users').update(up).eq('id_number', myId);
-            if(!error) { alert("Данные обновлены! Перезайдите."); location.reload(); }
+            if(!error) { alert("Данные обновлены!"); location.reload(); }
         }
+
         async function loadFavoritesTab() {
             clearMainArea();
             const wall = document.getElementById('wall-posts');
@@ -505,6 +533,7 @@
                 });
             }
         }
+
         function clearMainArea() {
             switchTab('col-main');
             document.getElementById('chat-window').style.display = 'none';
