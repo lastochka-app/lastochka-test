@@ -90,7 +90,7 @@
         <div class="card" style="width:280px;">
             <strong>ВХОД В СИСТЕМУ</strong>
             <input type="number" id="my-id-input" placeholder="Ваш ID">
-            <input type="text" id="my-nick-input" placeholder="Никнейм">
+            <input type="text" id="my-nick-input" placeholder="Никнейм (Обязательно для рег.)">
             <input type="password" id="my-pass-input" placeholder="Пароль">
             <input type="text" id="my-avatar-input" placeholder="URL аватара (опционально)">
             <button onclick="handleAuth('login')" style="width:100%; margin-top:5px;">ВОЙТИ</button>
@@ -184,9 +184,8 @@
 
         let myId, myNick, currentChatId;
         const DEFAULT_AVATAR = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRLCFpHxyg6G5c4uQQy6U5SlgJr6qq6P6ot7Q&s";
-        let userCache = {}; // Кеш для хранения ников и аватарок
+        let userCache = {};
 
-        // --- ЛОГИКА ТЕМ ---
         function setTheme(theme) {
             if (theme === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
             else document.documentElement.removeAttribute('data-theme');
@@ -195,117 +194,23 @@
         const savedTheme = localStorage.getItem('theme');
         if (savedTheme) setTheme(savedTheme);
 
-        function showAbout() {
-            clearMainArea();
-            const wall = document.getElementById('wall-posts');
-            wall.innerHTML = `
-                <div class="tab-header">О ПРОЕКТЕ</div>
-                <div class="card" style="line-height:1.6; text-align:center; padding:30px;">
-                    <strong style="font-size:16px; color:var(--text-blue);">Ласточка.ru</strong><br>
-                    Все права защищены!<br><br>
-                    Ласточка.ru ето мессенджер где вашы данные будут защищены!.
-                </div>`;
-        }
-
-        function showSettings() {
-            clearMainArea();
-            const wall = document.getElementById('wall-posts');
-            wall.innerHTML = `
-                <div class="tab-header">НАСТРОЙКИ ПРОФИЛЯ</div>
-                <div class="card">
-                    <label>Изменить никнейм:</label>
-                    <input type="text" id="set-nick" value="${myNick}">
-                    <label>Изменить URL аватара:</label>
-                    <input type="text" id="set-av" placeholder="http://...">
-                    <button onclick="updateProfile()" style="width:100%; margin-top:10px;">СОХРАНИТЬ ИЗМЕНЕНИЯ</button>
-                </div>
-                <div class="card" style="text-align:center;">
-                    <strong>ТЕМА ИНТЕРФЕЙСЯ:</strong><br><br>
-                    <button onclick="setTheme('light')">СВЕТЛАЯ КЛАССИКА</button>
-                    <button onclick="setTheme('dark')">ТЕМНАЯ НОЧЬ</button>
-                </div>`;
-        }
-
-        async function updateProfile() {
-            const nick = document.getElementById('set-nick').value;
-            const av = document.getElementById('set-av').value;
-            let up = { nickname: nick };
-            if(av) up.avatar_url = av;
-            
-            const { error } = await _supabase.from('users').update(up).eq('id_number', myId);
-            if(!error) {
-                alert("Данные обновлены! Перезайдите для синхронизации.");
-                location.reload();
-            }
-        }
-
-        function clearMainArea() {
-            switchTab('col-main');
-            document.getElementById('chat-window').style.display = 'none';
-            document.getElementById('profile-screen').style.display = 'flex';
-            document.getElementById('profile-card').style.display = 'none';
-            document.getElementById('wall-input-area').style.display = 'none';
-            document.getElementById('inbox-area').style.display = 'none';
-            document.getElementById('wall-posts').innerHTML = '';
-        }
-
-        async function loadFavoritesTab() {
-            clearMainArea();
-            const wall = document.getElementById('wall-posts');
-            wall.innerHTML = '<div class="tab-header">ИЗБРАННЫЕ ПОЛЬЗОВАТЕЛИ</div>';
-            const { data: favs } = await _supabase.from('favorites').select('favorite_id').eq('user_id', myId);
-            if(!favs || favs.length === 0) {
-                wall.innerHTML += '<div style="padding:20px; text-align:center; color:#999;">У вас пока нет избранных.</div>';
-                return;
-            }
-            const { data: users } = await _supabase.from('users').select('*').in('id_number', favs.map(f => f.favorite_id));
-            if(users) {
-                users.forEach(u => {
-                    const div = document.createElement('div');
-                    div.className = 'card'; div.style.display = 'flex'; div.style.alignItems = 'center'; div.style.gap = '10px'; div.style.cursor = 'pointer';
-                    div.onclick = () => viewProfile(u.id_number);
-                    div.innerHTML = `<img src="${u.avatar_url}" style="width:30px; height:30px; border-radius:50%; object-fit:cover;"><b style="color:var(--text-blue);">${u.nickname}</b> <small>(ID: ${u.id_number})</small>`;
-                    wall.appendChild(div);
-                });
-            }
-        }
-
-        async function loadMessages() {
-            if(!currentChatId) return;
-            const { data: messages } = await _supabase.from('messages').select('*').eq('chat_id', currentChatId).order('created_at', { ascending: true });
-            const box = document.getElementById('messages-list');
-            
-            // Собираем уникальные ID отправителей, чтобы подтянуть их данные
-            const senderIds = [...new Set(messages.map(m => m.sender_id))];
-            const { data: users } = await _supabase.from('users').select('id_number, nickname, avatar_url').in('id_number', senderIds);
-            
-            // Заполняем кеш
-            if(users) users.forEach(u => userCache[u.id_number] = u);
-
-            box.innerHTML = (messages || []).map(m => {
-                const user = userCache[m.sender_id] || { nickname: 'User', avatar_url: DEFAULT_AVATAR };
-                return `
-                    <div class="msg-container">
-                        <img src="${user.avatar_url}" class="msg-avatar">
-                        <div class="msg-content">
-                            <div class="msg-info">
-                                <b>${user.nickname} (ID: ${m.sender_id})</b>
-                                <span>${new Date(m.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
-                            </div>
-                            <div>${parseContent(m.text)}</div>
-                        </div>
-                    </div>`;
-            }).join('');
-            box.scrollTop = box.scrollHeight;
-        }
-
         async function handleAuth(mode) {
             const id = document.getElementById('my-id-input').value;
             const pass = document.getElementById('my-pass-input').value;
             const nick = document.getElementById('my-nick-input').value;
             let av = document.getElementById('my-avatar-input').value.trim() || DEFAULT_AVATAR;
-            if (mode === 'reg') await _supabase.from('users').insert([{ id_number: id, password: pass, nickname: nick, avatar_url: av }]);
+
+            if (mode === 'reg') {
+                // ПРОВЕРКА НА ПУСТОЙ НИК
+                if (!nick.trim()) {
+                    alert("ОШИБКА: Поле 'Никнейм' обязательно при регистрации!");
+                    return;
+                }
+                await _supabase.from('users').insert([{ id_number: id, password: pass, nickname: nick, avatar_url: av }]);
+            }
+
             const { data: user } = await _supabase.from('users').select('*').eq('id_number', id).eq('password', pass).single();
+            
             if (user) {
                 myId = id; myNick = user.nickname;
                 document.getElementById('auth-box').style.display = 'none';
@@ -314,10 +219,9 @@
                 document.getElementById('display-nick').innerText = myNick;
                 document.getElementById('my-avatar-img').src = user.avatar_url;
                 loadGroups(); loadUsers(); viewProfile(myId); initRealtime();
-            } else alert("Ошибка входа!");
+            } else alert("Ошибка входа! Проверьте ID или пароль.");
         }
 
-        // --- Вспомогательные функции (остались без изменений или с легкими правками) ---
         async function viewProfile(userId) {
             switchTab('col-main');
             document.getElementById('chat-window').style.display = 'none';
@@ -341,6 +245,31 @@
             updateFollowCounts(userId); loadPosts(userId);
         }
 
+        async function loadMessages() {
+            if(!currentChatId) return;
+            const { data: messages } = await _supabase.from('messages').select('*').eq('chat_id', currentChatId).order('created_at', { ascending: true });
+            const box = document.getElementById('messages-list');
+            const senderIds = [...new Set((messages || []).map(m => m.sender_id))];
+            const { data: users } = await _supabase.from('users').select('id_number, nickname, avatar_url').in('id_number', senderIds);
+            if(users) users.forEach(u => userCache[u.id_number] = u);
+
+            box.innerHTML = (messages || []).map(m => {
+                const user = userCache[m.sender_id] || { nickname: 'User', avatar_url: DEFAULT_AVATAR };
+                return `
+                    <div class="msg-container">
+                        <img src="${user.avatar_url}" class="msg-avatar">
+                        <div class="msg-content">
+                            <div class="msg-info">
+                                <b>${user.nickname} (ID: ${m.sender_id})</b>
+                                <span>${new Date(m.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                            </div>
+                            <div>${parseContent(m.text)}</div>
+                        </div>
+                    </div>`;
+            }).join('');
+            box.scrollTop = box.scrollHeight;
+        }
+
         async function sendMessage() {
             const inp = document.getElementById('msg-input');
             if(!inp.value.trim() || !currentChatId) return;
@@ -358,7 +287,8 @@
 
         function switchTab(id) {
             document.querySelectorAll('.column').forEach(c => c.classList.remove('active-mob'));
-            document.getElementById(id).classList.add('active-mob');
+            const target = document.getElementById(id);
+            if(target) target.classList.add('active-mob');
         }
 
         function parseContent(str) {
@@ -366,7 +296,6 @@
             return str.replace(urlPattern, (u) => u.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? `<img src="${u}" class="embedded-img" onclick="window.open('${u}')">` : `<a href="${u}" target="_blank" style="color:var(--text-blue);">${u}</a>`);
         }
 
-        // Остальные функции из твоего кода (loadInbox, loadFeed, loadUsers и т.д.) перенеси сюда без изменений
         async function loadFeed() {
             clearMainArea();
             const { data: posts } = await _supabase.from('posts').select('*').order('created_at', { ascending: false }).limit(50);
@@ -438,8 +367,10 @@
         async function checkFollowStatus(id) {
             const { data } = await _supabase.from('follows').select('*').eq('follower_id', myId).eq('following_id', id).single();
             const btn = document.getElementById('follow-btn');
-            btn.innerText = data ? "ОТПИСАТЬСЯ" : "ПОДПИСАТЬСЯ";
-            btn.onclick = () => toggleFollow(id, !!data);
+            if(btn) {
+                btn.innerText = data ? "ОТПИСАТЬСЯ" : "ПОДПИСАТЬСЯ";
+                btn.onclick = () => toggleFollow(id, !!data);
+            }
         }
         async function toggleFollow(id, isF) {
             if(isF) await _supabase.from('follows').delete().eq('follower_id', myId).eq('following_id', id);
@@ -454,9 +385,11 @@
         }
         async function checkFavoriteStatus(id) {
             const btn = document.getElementById('fav-btn');
-            const { data } = await _supabase.from('favorites').select('*').eq('user_id', myId).eq('favorite_id', id).single();
-            btn.innerText = data ? "УДАЛИТЬ ИЗ ИЗБРАННОГО" : "В ИЗБРАННОЕ";
-            btn.onclick = () => toggleFavorite(id, !!data);
+            if(btn) {
+                const { data } = await _supabase.from('favorites').select('*').eq('user_id', myId).eq('favorite_id', id).single();
+                btn.innerText = data ? "УДАЛИТЬ ИЗ ИЗБРАННОГО" : "В ИЗБРАННОЕ";
+                btn.onclick = () => toggleFavorite(id, !!data);
+            }
         }
         async function toggleFavorite(id, isFav) {
             if(isFav) await _supabase.from('favorites').delete().eq('user_id', myId).eq('favorite_id', id);
@@ -515,6 +448,72 @@
             }
         }
         function createGroup() { const n = prompt("Название группы:"); if(n) _supabase.from('groups').insert([{name:n}]).then(loadGroups); }
+        function showAbout() {
+            clearMainArea();
+            const wall = document.getElementById('wall-posts');
+            wall.innerHTML = `
+                <div class="tab-header">О ПРОЕКТЕ</div>
+                <div class="card" style="line-height:1.6; text-align:center; padding:30px;">
+                    <strong style="font-size:16px; color:var(--text-blue);">Ласточка.ru</strong><br>
+                    Все права защищены!<br><br>
+                    Ласточка.ru ето мессенджер где вашы данные будут защищены!.
+                </div>`;
+        }
+        function showSettings() {
+            clearMainArea();
+            const wall = document.getElementById('wall-posts');
+            wall.innerHTML = `
+                <div class="tab-header">НАСТРОЙКИ ПРОФИЛЯ</div>
+                <div class="card">
+                    <label>Изменить никнейм:</label>
+                    <input type="text" id="set-nick" value="${myNick}">
+                    <label>Изменить URL аватара:</label>
+                    <input type="text" id="set-av" placeholder="http://...">
+                    <button onclick="updateProfile()" style="width:100%; margin-top:10px;">СОХРАНИТЬ ИЗМЕНЕНИЯ</button>
+                </div>
+                <div class="card" style="text-align:center;">
+                    <strong>ТЕМА ИНТЕРФЕЙСЯ:</strong><br><br>
+                    <button onclick="setTheme('light')">СВЕТЛАЯ КЛАССИКА</button>
+                    <button onclick="setTheme('dark')">ТЕМНАЯ НОЧЬ</button>
+                </div>`;
+        }
+        async function updateProfile() {
+            const nick = document.getElementById('set-nick').value;
+            const av = document.getElementById('set-av').value;
+            let up = { nickname: nick };
+            if(av) up.avatar_url = av;
+            const { error } = await _supabase.from('users').update(up).eq('id_number', myId);
+            if(!error) { alert("Данные обновлены! Перезайдите."); location.reload(); }
+        }
+        async function loadFavoritesTab() {
+            clearMainArea();
+            const wall = document.getElementById('wall-posts');
+            wall.innerHTML = '<div class="tab-header">ИЗБРАННЫЕ ПОЛЬЗОВАТЕЛИ</div>';
+            const { data: favs } = await _supabase.from('favorites').select('favorite_id').eq('user_id', myId);
+            if(!favs || favs.length === 0) {
+                wall.innerHTML += '<div style="padding:20px; text-align:center; color:#999;">У вас пока нет избранных.</div>';
+                return;
+            }
+            const { data: users } = await _supabase.from('users').select('*').in('id_number', favs.map(f => f.favorite_id));
+            if(users) {
+                users.forEach(u => {
+                    const div = document.createElement('div');
+                    div.className = 'card'; div.style.display = 'flex'; div.style.alignItems = 'center'; div.style.gap = '10px'; div.style.cursor = 'pointer';
+                    div.onclick = () => viewProfile(u.id_number);
+                    div.innerHTML = `<img src="${u.avatar_url}" style="width:30px; height:30px; border-radius:50%; object-fit:cover;"><b style="color:var(--text-blue);">${u.nickname}</b> <small>(ID: ${u.id_number})</small>`;
+                    wall.appendChild(div);
+                });
+            }
+        }
+        function clearMainArea() {
+            switchTab('col-main');
+            document.getElementById('chat-window').style.display = 'none';
+            document.getElementById('profile-screen').style.display = 'flex';
+            document.getElementById('profile-card').style.display = 'none';
+            document.getElementById('wall-input-area').style.display = 'none';
+            document.getElementById('inbox-area').style.display = 'none';
+            document.getElementById('wall-posts').innerHTML = '';
+        }
     </script>
 </body>
 </html>
