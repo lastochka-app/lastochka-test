@@ -88,8 +88,8 @@
     <div id="auth-box">
         <div class="card" style="width:280px;">
             <strong>ВХОД В СИСТЕМУ</strong>
-            <input type="text" id="my-id-input" placeholder="Ваш ID">
-            <input type="text" id="my-nick-input" placeholder="Никнейм (Обязательно для рег.)">
+            <input type="number" id="my-id-input" placeholder="Ваш ID">
+            <input type="text" id="my-nick-input" placeholder="Никнейм">
             <input type="password" id="my-pass-input" placeholder="Пароль">
             <input type="text" id="my-avatar-input" placeholder="URL аватара (опционально)">
             <button onclick="handleAuth('login')" style="width:100%; margin-top:5px;">ВОЙТИ</button>
@@ -160,7 +160,7 @@
 
         <div class="column" id="col-right">
             <strong>ПОИСК ПО ID:</strong>
-            <div style="display:flex; gap:2px;"><input type="text" id="target-id-input"><button onclick="goToId()">GO</button></div>
+            <div style="display:flex; gap:2px;"><input type="number" id="target-id-input"><button onclick="goToId()">GO</button></div>
             <br>
             <strong>ПОЛЬЗОВАТЕЛИ:</strong>
             <div id="users-list" class="scroll-area"></div>
@@ -177,120 +177,95 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
-        // ВСТАВЬ СВОИ ДАННЫЕ ИЗ SUPABASE SETTINGS -> API
         const SUPABASE_URL = 'https://xjekyaiyfvtjtkinlmbv.supabase.co';
-        const SUPABASE_KEY = 'ВАШ_API_KEY'; 
+        const SUPABASE_KEY = 'sb_publishable_Nne-WFtskhN6oEkYkgtWhA_KHo2W8YC'; 
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         let myId, myNick, currentChatId;
         const DEFAULT_AVATAR = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRLCFpHxyg6G5c4uQQy6U5SlgJr6qq6P6ot7Q&s";
         let userCache = {};
 
+        // --- ИНИЦИАЛИЗАЦИЯ И АВТОВХОД ---
+        window.onload = async () => {
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme) setTheme(savedTheme);
+
+            const sId = localStorage.getItem('saved_user_id');
+            const sPass = localStorage.getItem('saved_user_pass');
+
+            if (sId && sPass) {
+                const { data: user } = await _supabase.from('users').select('*').eq('id_number', sId).eq('password', sPass).single();
+                if (user) {
+                    myId = sId;
+                    myNick = user.nickname;
+                    startApp(user);
+                }
+            }
+        };
+
+        function startApp(user) {
+            document.getElementById('auth-box').style.display = 'none';
+            document.getElementById('main-ui').style.display = 'flex';
+            if(window.innerWidth <= 768) document.getElementById('mob-nav').style.display = 'flex';
+            document.getElementById('display-nick').innerText = user.nickname;
+            document.getElementById('my-avatar-img').src = user.avatar_url || DEFAULT_AVATAR;
+            loadGroups(); loadUsers(); viewProfile(myId); initRealtime();
+        }
+
+        async function handleAuth(mode) {
+            const id = document.getElementById('my-id-input').value;
+            const pass = document.getElementById('my-pass-input').value;
+            const nick = document.getElementById('my-nick-input').value;
+            let av = document.getElementById('my-avatar-input').value.trim() || DEFAULT_AVATAR;
+
+            if (mode === 'reg') {
+                await _supabase.from('users').insert([{ id_number: id, password: pass, nickname: nick, avatar_url: av }]);
+            }
+
+            const { data: user } = await _supabase.from('users').select('*').eq('id_number', id).eq('password', pass).single();
+            if (user) {
+                myId = id; myNick = user.nickname;
+                localStorage.setItem('saved_user_id', id);
+                localStorage.setItem('saved_user_pass', pass);
+                startApp(user);
+            } else alert("Ошибка входа!");
+        }
+
+        function logout() {
+            localStorage.removeItem('saved_user_id');
+            localStorage.removeItem('saved_user_pass');
+            location.reload();
+        }
+
+        // --- ТЕМЫ ---
         function setTheme(theme) {
             if (theme === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
             else document.documentElement.removeAttribute('data-theme');
             localStorage.setItem('theme', theme);
         }
-        if (localStorage.getItem('theme')) setTheme(localStorage.getItem('theme'));
 
-        async function handleAuth(mode) {
-            const id = document.getElementById('my-id-input').value.trim();
-            const pass = document.getElementById('my-pass-input').value.trim();
-            const nick = document.getElementById('my-nick-input').value.trim();
-            let av = document.getElementById('my-avatar-input').value.trim() || DEFAULT_AVATAR;
-
-            if (!id || !pass) return alert("Введите ID и пароль!");
-
-            if (mode === 'reg') {
-                if (!nick) return alert("Никнейм обязателен для регистрации!");
-                const { error } = await _supabase.from('users').insert([{ id_number: id, password: pass, nickname: nick, avatar_url: av }]);
-                if (error) return alert("Ошибка регистрации: " + error.message);
-            }
-
-            const { data: user, error } = await _supabase.from('users').select('*').eq('id_number', id).eq('password', pass).single();
-            
-            if (user) {
-                myId = id; myNick = user.nickname;
-                document.getElementById('auth-box').style.display = 'none';
-                document.getElementById('main-ui').style.display = 'flex';
-                if(window.innerWidth <= 768) document.getElementById('mob-nav').style.display = 'flex';
-                document.getElementById('display-nick').innerText = myNick;
-                document.getElementById('my-avatar-img').src = user.avatar_url;
-                loadGroups(); loadUsers(); viewProfile(myId); initRealtime();
-            } else alert("Ошибка входа! Проверьте ID или пароль.");
-        }
-
+        // --- ПРОФИЛЬ И КОНТЕНТ ---
         async function viewProfile(userId) {
             switchTab('col-main');
             document.getElementById('chat-window').style.display = 'none';
             document.getElementById('profile-screen').style.display = 'flex';
             document.getElementById('profile-card').style.display = 'flex';
-
             const { data: user } = await _supabase.from('users').select('*').eq('id_number', userId).single();
             if(!user) return;
-
-            document.getElementById('view-avatar').src = user.avatar_url;
+            document.getElementById('view-avatar').src = user.avatar_url || DEFAULT_AVATAR;
             document.getElementById('view-nick').innerText = user.nickname;
             document.getElementById('view-id-label').innerText = "ID: " + user.id_number;
-
-            const isMe = (String(userId) === String(myId));
+            const isMe = (userId == myId);
             document.getElementById('wall-input-area').style.display = isMe ? 'block' : 'none';
             document.getElementById('inbox-area').style.display = isMe ? 'block' : 'none';
             document.getElementById('write-btn').style.display = isMe ? 'none' : 'block';
             document.getElementById('follow-btn').style.display = isMe ? 'none' : 'block';
             document.getElementById('fav-btn').style.display = isMe ? 'none' : 'block';
-
             if(!isMe) {
                 document.getElementById('write-btn').onclick = () => openPrivate(user.id_number, user.nickname);
                 checkFollowStatus(userId); checkFavoriteStatus(userId);
             } else loadInbox();
-
             updateFollowCounts(userId); loadPosts(userId);
-        }
-
-        async function loadMessages() {
-            if(!currentChatId) return;
-            const { data: messages } = await _supabase.from('messages').select('*').eq('chat_id', currentChatId).order('created_at', { ascending: true });
-            const box = document.getElementById('messages-list');
-            
-            const senderIds = [...new Set((messages || []).map(m => m.sender_id))];
-            if(senderIds.length > 0) {
-                const { data: users } = await _supabase.from('users').select('id_number, nickname, avatar_url').in('id_number', senderIds);
-                if(users) users.forEach(u => userCache[u.id_number] = u);
-            }
-
-            box.innerHTML = (messages || []).map(m => {
-                const user = userCache[m.sender_id] || { nickname: 'ID ' + m.sender_id, avatar_url: DEFAULT_AVATAR };
-                return `
-                    <div class="msg-container">
-                        <img src="${user.avatar_url}" class="msg-avatar">
-                        <div class="msg-content">
-                            <div class="msg-info">
-                                <b>${user.nickname}</b>
-                                <span>${new Date(m.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
-                            </div>
-                            <div>${parseContent(m.text)}</div>
-                        </div>
-                    </div>`;
-            }).join('');
-            box.scrollTop = box.scrollHeight;
-        }
-
-        async function sendMessage() {
-            const inp = document.getElementById('msg-input');
-            if(!inp.value.trim() || !currentChatId) return;
-            await _supabase.from('messages').insert([{ sender_id: myId, chat_id: currentChatId, text: inp.value.trim() }]);
-            inp.value = ""; loadMessages();
-        }
-
-        function initRealtime() {
-            _supabase.channel('public:messages').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, (payload) => {
-                const m = payload.new;
-                if(m.sender_id != myId) {
-                    if(currentChatId === m.chat_id) loadMessages();
-                    else if(m.chat_id.includes(myId) || m.chat_id.startsWith("group_")) showToast(m.sender_id, m.text);
-                }
-            }).subscribe();
         }
 
         async function createPost() {
@@ -300,41 +275,86 @@
             document.getElementById('post-text').value = ""; viewProfile(myId);
         }
 
-        async function toggleLike(postId, authorId, isFeed = false) {
-            const { data: post } = await _supabase.from('posts').select('likes, liked_by').eq('id', postId).single();
-            if (!post) return;
-            let likedBy = post.liked_by || [];
-            let likesCount = post.likes || 0;
-            const uid = String(myId);
-
-            if (likedBy.includes(uid)) {
-                likedBy = likedBy.filter(i => i !== uid);
-                likesCount = Math.max(0, likesCount - 1);
-            } else {
-                likedBy.push(uid);
-                likesCount++;
+        async function loadPosts(userId) {
+            const { data: posts } = await _supabase.from('posts').select('*').eq('author_id', userId).order('created_at', { ascending: false });
+            const wall = document.getElementById('wall-posts');
+            wall.innerHTML = '';
+            if(posts) {
+                posts.forEach(p => {
+                    const isLiked = (p.liked_by || []).includes(String(myId));
+                    const div = document.createElement('div');
+                    div.className = 'post';
+                    div.innerHTML = `<div class="post-header"><small style="color:#999;">${new Date(p.created_at).toLocaleDateString()}</small>${p.author_id == myId ? `<button class="del-btn" onclick="deletePost('${p.id}')">[УДАЛИТЬ]</button>` : ''}</div><div style="margin-top:3px;">${parseContent(p.text)}</div><div class="like-row"><button onclick="toggleLike('${p.id}', '${userId}')" class="${isLiked?'like-btn active':'like-btn'}">Нравиться (${p.likes || 0})</button></div>`;
+                    wall.appendChild(div);
+                });
             }
-            await _supabase.from('posts').update({ likes: likesCount, liked_by: likedBy }).eq('id', postId);
-            if(isFeed) loadFeed(); else loadPosts(authorId);
         }
 
-        function openPrivate(id, nick) {
-            currentChatId = [String(myId), String(id)].sort().join("_");
+        // --- СООБЩЕНИЯ ---
+        async function sendMessage() {
+            const inp = document.getElementById('msg-input');
+            if(!inp.value.trim() || !currentChatId) return;
+            await _supabase.from('messages').insert([{ sender_id: myId, chat_id: currentChatId, text: inp.value.trim() }]);
+            inp.value = ""; loadMessages();
+        }
+
+        async function loadMessages() {
+            if(!currentChatId) return;
+            const { data: messages } = await _supabase.from('messages').select('*').eq('chat_id', currentChatId).order('created_at', { ascending: true });
+            const box = document.getElementById('messages-list');
+            const senderIds = [...new Set(messages.map(m => m.sender_id))];
+            const { data: users } = await _supabase.from('users').select('id_number, nickname, avatar_url').in('id_number', senderIds);
+            if(users) users.forEach(u => userCache[u.id_number] = u);
+
+            box.innerHTML = (messages || []).map(m => {
+                const user = userCache[m.sender_id] || { nickname: 'User', avatar_url: DEFAULT_AVATAR };
+                return `<div class="msg-container"><img src="${user.avatar_url}" class="msg-avatar"><div class="msg-content"><div class="msg-info"><b>${user.nickname} (ID: ${m.sender_id})</b><span>${new Date(m.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span></div><div>${parseContent(m.text)}</div></div></div>`;
+            }).join('');
+            box.scrollTop = box.scrollHeight;
+        }
+
+        async function openPrivate(id, nick) {
+            currentChatId = [myId, id].sort().join("_");
             document.getElementById('profile-screen').style.display = 'none';
             document.getElementById('chat-window').style.display = 'flex';
             document.getElementById('chat-title').innerText = nick;
             switchTab('col-main'); loadMessages();
         }
 
+        // --- ВСПОМОГАТЕЛЬНЫЕ ---
         function switchTab(id) {
             document.querySelectorAll('.column').forEach(c => c.classList.remove('active-mob'));
-            const target = document.getElementById(id);
-            if(target) target.classList.add('active-mob');
+            document.getElementById(id).classList.add('active-mob');
         }
 
         function parseContent(str) {
             const urlPattern = /(https?:\/\/[^\s]+)/g;
             return str.replace(urlPattern, (u) => u.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? `<img src="${u}" class="embedded-img" onclick="window.open('${u}')">` : `<a href="${u}" target="_blank" style="color:var(--text-blue);">${u}</a>`);
+        }
+
+        function showSettings() {
+            clearMainArea();
+            const wall = document.getElementById('wall-posts');
+            wall.innerHTML = `<div class="tab-header">НАСТРОЙКИ</div><div class="card"><label>Никнейм:</label><input type="text" id="set-nick" value="${myNick}"><label>URL аватара:</label><input type="text" id="set-av"><button onclick="updateProfile()" style="width:100%; margin-top:10px;">СОХРАНИТЬ</button></div><div class="card" style="text-align:center;"><strong>ТЕМА:</strong><br><button onclick="setTheme('light')">СВЕТЛАЯ</button><button onclick="setTheme('dark')">ТЕМНАЯ</button><br><br><button onclick="logout()" style="color:red;">ВЫЙТИ ИЗ АККАУНТА</button></div>`;
+        }
+
+        async function updateProfile() {
+            const nick = document.getElementById('set-nick').value;
+            const av = document.getElementById('set-av').value;
+            let up = { nickname: nick };
+            if(av) up.avatar_url = av;
+            await _supabase.from('users').update(up).eq('id_number', myId);
+            location.reload();
+        }
+
+        function clearMainArea() {
+            switchTab('col-main');
+            document.getElementById('chat-window').style.display = 'none';
+            document.getElementById('profile-screen').style.display = 'flex';
+            document.getElementById('profile-card').style.display = 'none';
+            document.getElementById('wall-input-area').style.display = 'none';
+            document.getElementById('inbox-area').style.display = 'none';
+            document.getElementById('wall-posts').innerHTML = '';
         }
 
         async function loadFeed() {
@@ -353,25 +373,14 @@
             }
         }
 
-        async function loadPosts(userId) {
-            const { data: posts } = await _supabase.from('posts').select('*').eq('author_id', userId).order('created_at', { ascending: false });
-            const wall = document.getElementById('wall-posts');
-            wall.innerHTML = '';
-            if(posts) {
-                posts.forEach(p => {
-                    const isLiked = (p.liked_by || []).includes(String(myId));
-                    const div = document.createElement('div');
-                    div.className = 'post';
-                    div.innerHTML = `<div class="post-header"><small style="color:#999;">${new Date(p.created_at).toLocaleDateString()}</small>${p.author_id == myId ? `<button class="del-btn" onclick="deletePost('${p.id}')">[УДАЛИТЬ]</button>` : ''}</div><div style="margin-top:3px;">${parseContent(p.text)}</div><div class="like-row"><button onclick="toggleLike('${p.id}', '${userId}')" class="${isLiked?'like-btn active':'like-btn'}">Нравиться (${p.likes || 0})</button></div>`;
-                    wall.appendChild(div);
-                });
-            }
-        }
-
-        async function deletePost(postId) {
-            if(!confirm("Удалить этот пост?")) return;
-            await _supabase.from('posts').delete().eq('id', postId).eq('author_id', myId);
-            viewProfile(myId);
+        function initRealtime() {
+            _supabase.channel('any').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, (payload) => {
+                const m = payload.new;
+                if(m.sender_id != myId) {
+                    if(currentChatId === m.chat_id) loadMessages();
+                    else if(m.chat_id.includes(myId) || m.chat_id.startsWith("group_")) showToast(m.sender_id, m.text);
+                }
+            }).subscribe();
         }
 
         function showToast(senderId, text) {
@@ -382,12 +391,9 @@
             container.appendChild(t); setTimeout(() => t.remove(), 5000);
         }
 
-        function showWall() { viewProfile(myId); }
-        function goToId() { const i = document.getElementById('target-id-input').value; if(i) viewProfile(i); }
-        
         async function loadUsers() {
             const { data } = await _supabase.from('users').select('*');
-            if(data) document.getElementById('users-list').innerHTML = data.map(u => `<div style="padding:4px; border-bottom:1px solid var(--border-ui); cursor:pointer;" onclick="viewProfile('${u.id_number}')"><img src="${u.avatar_url}" style="width:18px; height:18px; border-radius:50%; vertical-align:middle;"> ${u.nickname}</div>`).join('');
+            if(data) document.getElementById('users-list').innerHTML = data.map(u => `<div style="padding:4px; border-bottom:1px solid var(--border-ui); cursor:pointer;" onclick="viewProfile('${u.id_number}')"><img src="${u.avatar_url || DEFAULT_AVATAR}" style="width:18px; height:18px; border-radius:50%; vertical-align:middle;"> ${u.nickname}</div>`).join('');
         }
 
         async function loadGroups() {
@@ -403,50 +409,20 @@
             switchTab('col-main'); loadMessages();
         }
 
-        async function toggleFollow(id, isF) {
-            if(isF) await _supabase.from('follows').delete().eq('follower_id', myId).eq('following_id', id);
-            else await _supabase.from('follows').insert([{follower_id:myId, following_id:id}]);
-            viewProfile(id);
-        }
-
-        async function checkFollowStatus(id) {
-            const { data } = await _supabase.from('follows').select('*').eq('follower_id', myId).eq('following_id', id).single();
-            const btn = document.getElementById('follow-btn');
-            if(btn) {
-                btn.innerText = data ? "ОТПИСАТЬСЯ" : "ПОДПИСАТЬСЯ";
-                btn.onclick = () => toggleFollow(id, !!data);
-            }
-        }
-
-        async function updateFollowCounts(id) {
-            const { count: f1 } = await _supabase.from('follows').select('*', { count: 'exact', head: true }).eq('following_id', id);
-            const { count: f2 } = await _supabase.from('follows').select('*', { count: 'exact', head: true }).eq('follower_id', id);
-            document.getElementById('count-followers').innerText = f1 || 0;
-            document.getElementById('count-following').innerText = f2 || 0;
-        }
-
-        async function checkFavoriteStatus(id) {
-            const btn = document.getElementById('fav-btn');
-            const { data } = await _supabase.from('favorites').select('*').eq('user_id', myId).eq('favorite_id', id).single();
-            if(btn) {
-                btn.innerText = data ? "УДАЛИТЬ ИЗ ИЗБРАННОГО" : "В ИЗБРАННОЕ";
-                btn.onclick = () => toggleFavorite(id, !!data);
-            }
-        }
-
-        async function toggleFavorite(id, isFav) {
-            if(isFav) await _supabase.from('favorites').delete().eq('user_id', myId).eq('favorite_id', id);
-            else await _supabase.from('favorites').insert([{user_id: myId, favorite_id: id}]);
-            checkFavoriteStatus(id);
-        }
-
-        function sendImagePrompt() {
-            const url = prompt("Вставь URL картинки:");
-            if(url) { document.getElementById('msg-input').value = url; sendMessage(); }
+        async function toggleLike(postId, authorId, isFeed = false) {
+            const { data: post } = await _supabase.from('posts').select('likes, liked_by').eq('id', postId).single();
+            if (!post) return;
+            let likedBy = post.liked_by || [];
+            let likesCount = parseInt(post.likes) || 0;
+            const uid = String(myId);
+            if (likedBy.includes(uid)) { likedBy = likedBy.filter(i => i !== uid); likesCount = Math.max(0, likesCount - 1); } 
+            else { likedBy.push(uid); likesCount++; }
+            await _supabase.from('posts').update({ likes: likesCount, liked_by: likedBy }).eq('id', postId);
+            if(isFeed) loadFeed(); else loadPosts(authorId);
         }
 
         async function loadInbox() {
-            const { data } = await _supabase.from('messages').select('*').order('created_at', { ascending: false }).limit(60);
+            const { data } = await _supabase.from('messages').select('*').order('created_at', { ascending: false }).limit(40);
             const list = document.getElementById('inbox-list');
             if(!data) return;
             const res = []; const seen = new Set();
@@ -472,77 +448,22 @@
             }
         }
 
-        function createGroup() { const n = prompt("Название группы:"); if(n) _supabase.from('groups').insert([{name:n}]).then(loadGroups); }
         function showAbout() {
             clearMainArea();
-            const wall = document.getElementById('wall-posts');
-            wall.innerHTML = `
-                <div class="tab-header">О ПРОЕКТЕ</div>
-                <div class="card" style="line-height:1.6; text-align:center; padding:30px;">
-                    <strong style="font-size:16px; color:var(--text-blue);">Ласточка.ru</strong><br>
-                    Все права защищены!<br><br>
-                    Ласточка.ru — это мессенджер, где ваши данные будут защищены!
-                </div>`;
+            document.getElementById('wall-posts').innerHTML = `<div class="tab-header">О ПРОЕКТЕ</div><div class="card" style="line-height:1.6; text-align:center; padding:30px;"><strong style="font-size:16px; color:var(--text-blue);">Ласточка.ru</strong><br>Все права защищены!<br><br>Ласточка.ru ето мессенджер где вашы данные будут защищены!.</div>`;
         }
-
-        function showSettings() {
-            clearMainArea();
-            const wall = document.getElementById('wall-posts');
-            wall.innerHTML = `
-                <div class="tab-header">НАСТРОЙКИ ПРОФИЛЯ</div>
-                <div class="card">
-                    <label>Изменить никнейм:</label>
-                    <input type="text" id="set-nick" value="${myNick}">
-                    <label>Изменить URL аватара:</label>
-                    <input type="text" id="set-av" placeholder="http://...">
-                    <button onclick="updateProfile()" style="width:100%; margin-top:10px;">СОХРАНИТЬ ИЗМЕНЕНИЯ</button>
-                </div>
-                <div class="card" style="text-align:center;">
-                    <strong>ТЕМА ИНТЕРФЕЙСА:</strong><br><br>
-                    <button onclick="setTheme('light')">СВЕТЛАЯ КЛАССИКА</button>
-                    <button onclick="setTheme('dark')">ТЕМНАЯ НОЧЬ</button>
-                </div>`;
-        }
-
-        async function updateProfile() {
-            const nick = document.getElementById('set-nick').value;
-            const av = document.getElementById('set-av').value;
-            let up = { nickname: nick };
-            if(av) up.avatar_url = av;
-            const { error } = await _supabase.from('users').update(up).eq('id_number', myId);
-            if(!error) { alert("Данные обновлены!"); location.reload(); }
-        }
-
-        async function loadFavoritesTab() {
-            clearMainArea();
-            const wall = document.getElementById('wall-posts');
-            wall.innerHTML = '<div class="tab-header">ИЗБРАННЫЕ ПОЛЬЗОВАТЕЛИ</div>';
-            const { data: favs } = await _supabase.from('favorites').select('favorite_id').eq('user_id', myId);
-            if(!favs || favs.length === 0) {
-                wall.innerHTML += '<div style="padding:20px; text-align:center; color:#999;">У вас пока нет избранных.</div>';
-                return;
-            }
-            const { data: users } = await _supabase.from('users').select('*').in('id_number', favs.map(f => f.favorite_id));
-            if(users) {
-                users.forEach(u => {
-                    const div = document.createElement('div');
-                    div.className = 'card'; div.style.display = 'flex'; div.style.alignItems = 'center'; div.style.gap = '10px'; div.style.cursor = 'pointer';
-                    div.onclick = () => viewProfile(u.id_number);
-                    div.innerHTML = `<img src="${u.avatar_url}" style="width:30px; height:30px; border-radius:50%; object-fit:cover;"><b style="color:var(--text-blue);">${u.nickname}</b> <small>(ID: ${u.id_number})</small>`;
-                    wall.appendChild(div);
-                });
-            }
-        }
-
-        function clearMainArea() {
-            switchTab('col-main');
-            document.getElementById('chat-window').style.display = 'none';
-            document.getElementById('profile-screen').style.display = 'flex';
-            document.getElementById('profile-card').style.display = 'none';
-            document.getElementById('wall-input-area').style.display = 'none';
-            document.getElementById('inbox-area').style.display = 'none';
-            document.getElementById('wall-posts').innerHTML = '';
-        }
+        
+        function showWall() { viewProfile(myId); }
+        function goToId() { const i = document.getElementById('target-id-input').value; if(i) viewProfile(i); }
+        function createGroup() { const n = prompt("Название группы:"); if(n) _supabase.from('groups').insert([{name:n}]).then(loadGroups); }
+        function sendImagePrompt() { const url = prompt("Вставь URL картинки:"); if(url) { document.getElementById('msg-input').value = url; sendMessage(); } }
+        async function deletePost(postId) { if(!confirm("Удалить этот пост?")) return; await _supabase.from('posts').delete().eq('id', postId).eq('author_id', myId); viewProfile(myId); }
+        async function checkFollowStatus(id) { const { data } = await _supabase.from('follows').select('*').eq('follower_id', myId).eq('following_id', id).single(); const btn = document.getElementById('follow-btn'); btn.innerText = data ? "ОТПИСАТЬСЯ" : "ПОДПИСАТЬСЯ"; btn.onclick = () => toggleFollow(id, !!data); }
+        async function toggleFollow(id, isF) { if(isF) await _supabase.from('follows').delete().eq('follower_id', myId).eq('following_id', id); else await _supabase.from('follows').insert([{follower_id:myId, following_id:id}]); viewProfile(id); }
+        async function updateFollowCounts(id) { const { count: f1 } = await _supabase.from('follows').select('*', { count: 'exact' }).eq('following_id', id); const { count: f2 } = await _supabase.from('follows').select('*', { count: 'exact' }).eq('follower_id', id); document.getElementById('count-followers').innerText = f1 || 0; document.getElementById('count-following').innerText = f2 || 0; }
+        async function checkFavoriteStatus(id) { const btn = document.getElementById('fav-btn'); const { data } = await _supabase.from('favorites').select('*').eq('user_id', myId).eq('favorite_id', id).single(); btn.innerText = data ? "УДАЛИТЬ ИЗ ИЗБРАННОГО" : "В ИЗБРАННОЕ"; btn.onclick = () => toggleFavorite(id, !!data); }
+        async function toggleFavorite(id, isFav) { if(isFav) await _supabase.from('favorites').delete().eq('user_id', myId).eq('favorite_id', id); else await _supabase.from('favorites').insert([{user_id: myId, favorite_id: id}]); checkFavoriteStatus(id); }
+        async function loadFavoritesTab() { clearMainArea(); const wall = document.getElementById('wall-posts'); wall.innerHTML = '<div class="tab-header">ИЗБРАННЫЕ</div>'; const { data: favs } = await _supabase.from('favorites').select('favorite_id').eq('user_id', myId); if(!favs || favs.length === 0) { wall.innerHTML += '<div style="padding:20px; text-align:center; color:#999;">Нет избранных.</div>'; return; } const { data: users } = await _supabase.from('users').select('*').in('id_number', favs.map(f => f.favorite_id)); if(users) { users.forEach(u => { const div = document.createElement('div'); div.className = 'card'; div.style.display = 'flex'; div.style.alignItems = 'center'; div.style.gap = '10px'; div.style.cursor = 'pointer'; div.onclick = () => viewProfile(u.id_number); div.innerHTML = `<img src="${u.avatar_url || DEFAULT_AVATAR}" style="width:30px; height:30px; border-radius:50%; object-fit:cover;"><b style="color:var(--text-blue);">${u.nickname}</b> <small>(ID: ${u.id_number})</small>`; wall.appendChild(div); }); } }
     </script>
 </body>
 </html>
