@@ -1,168 +1,179 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <title>ЛАСТОЧКА.ru — Viber Edition</title>
+    <title>ЛАСТОЧКА.ru — Viber 4.0 Style</title>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
-        /* ПАЛИТРА VIBER 4.0 */
         :root {
-            --viber-purple: #7360F2;
-            --viber-light-purple: #8f80f5;
-            --viber-bg: #E6E7E9;
-            --viber-out-msg: #E1FFC7; /* Светло-зеленый для своих, как в старых мессенджерах */
-            --viber-in-msg: #FFFFFF;
-            --text-main: #333333;
-            --text-white: #FFFFFF;
+            --v-dark-purple: #5941A9; /* Темный фиолетовый для шапки */
+            --v-accent-purple: #7360F2; /* Акцентный фиолетовый */
+            --v-bg-list: #E9E9EB; /* Фон списка контактов */
+            --v-bg-main: #FFFFFF; /* Фон основной области */
+            --v-border: #D1D1D1;
+            --text-gray: #777777;
         }
 
-        /* ТЕМНАЯ ТЕМА (опционально) */
-        [data-theme="dark"] {
-            --viber-purple: #5647C2;
-            --viber-bg: #1A1A1B;
-            --viber-in-msg: #2D2D2E;
-            --viber-out-msg: #3D5A2D;
-            --text-main: #E0E0E0;
+        * { box-sizing: border-box; }
+        body, html { height: 100%; margin: 0; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; overflow: hidden; background: var(--v-bg-main); }
+
+        /* ВЕРХНЯЯ ПАНЕЛЬ */
+        header {
+            height: 50px;
+            background: var(--v-dark-purple);
+            display: flex;
+            align-items: center;
+            padding: 0 15px;
+            color: white;
+            justify-content: space-between;
         }
 
-        html, body { height: 100%; margin: 0; padding: 0; overflow: hidden; background-color: var(--viber-bg); font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: var(--text-main); }
-        body { display: flex; flex-direction: column; }
-
-        /* ШАПКА В СТИЛЕ VIBER */
-        header { 
-            background: var(--viber-purple); 
-            color: var(--text-white); 
-            padding: 10px; 
-            text-align: center; 
-            font-weight: bold; 
-            font-size: 18px; 
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-            z-index: 10;
-        }
-
-        #auth-box { flex: 1; display: flex; justify-content: center; align-items: center; }
-        #main-ui { display: none; flex: 1; width: 100%; max-width: 1200px; margin: 0 auto; gap: 0; overflow: hidden; }
+        .nav-icons { display: flex; gap: 30px; align-items: center; }
+        .nav-icons span { font-size: 20px; cursor: pointer; opacity: 0.8; transition: 0.2s; }
+        .nav-icons span:hover, .nav-icons span.active { opacity: 1; border-bottom: 3px solid white; padding-bottom: 5px; }
         
-        .column { display: flex; flex-direction: column; background: var(--viber-bg); border-right: 1px solid #ccc; height: 100%; box-sizing: border-box; }
-        #col-left { width: 280px; flex-shrink: 0; }
-        #col-main { flex: 1; background: #DADBD3; position: relative; } /* Фон чата как в олдскуле */
-        #col-right { width: 250px; flex-shrink: 0; display: none; }
+        .right-icons { display: flex; gap: 20px; font-size: 18px; }
 
-        /* КНОПКИ И ПОЛЯ */
-        .card { background: white; border-radius: 8px; padding: 10px; margin: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-        button { background: var(--viber-purple); color: white; border: none; border-radius: 20px; padding: 8px 15px; cursor: pointer; font-weight: bold; transition: 0.2s; }
-        button:hover { background: var(--viber-light-purple); }
-        input, textarea { border: 1px solid #ccc; border-radius: 15px; padding: 8px 12px; margin: 5px 0; width: 100%; box-sizing: border-box; outline: none; }
+        /* ОСНОВНОЙ КОНТЕЙНЕР */
+        #main-container { display: flex; height: calc(100% - 50px); }
 
-        /* ОБЛАЧКИ СООБЩЕНИЙ */
-        .msg-container { display: flex; margin-bottom: 12px; max-width: 85%; }
-        .msg-mine { align-self: flex-end; flex-direction: row-reverse; margin-left: auto; }
-        
-        .msg-avatar { width: 35px; height: 35px; border-radius: 50%; margin: 0 8px; object-fit: cover; border: 1px solid #fff; }
-        
-        .msg-content { 
-            padding: 10px 14px; 
-            border-radius: 18px; 
-            position: relative; 
-            font-size: 14px; 
-            line-height: 1.4;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        /* ЛЕВАЯ КОЛОНКА (СПИСОК) */
+        #sidebar {
+            width: 320px;
+            background: var(--v-bg-list);
+            border-right: 1px solid var(--v-border);
+            display: flex;
+            flex-direction: column;
         }
-        
-        /* Входящее */
-        .msg-other .msg-content { background: var(--viber-in-msg); border-bottom-left-radius: 2px; color: #000; }
-        /* Исходящее */
-        .msg-mine .msg-content { background: var(--viber-out-msg); border-bottom-right-radius: 2px; color: #000; }
 
-        .msg-info { font-size: 10px; color: #888; margin-top: 4px; display: block; text-align: right; }
+        .list-header { padding: 10px 15px; font-size: 11px; color: var(--text-gray); font-weight: bold; }
+        .contact-group-label { padding: 5px 15px; font-size: 12px; color: var(--v-dark-purple); font-weight: bold; }
 
-        /* ЧАТ-БАР */
-        #chat-window { display: flex; flex-direction: column; height: 100%; }
-        #chat-header { background: #f6f6f6; border-bottom: 1px solid #ccc; padding: 10px; display: flex; align-items: center; gap: 10px; }
-        .scroll-area { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; }
-
-        .input-area { background: #f0f0f0; padding: 10px; display: flex; gap: 8px; align-items: center; border-top: 1px solid #ccc; }
-
-        /* МОБИЛЬНАЯ НАВИГАЦИЯ (НИЖНЯЯ) */
-        .mobile-nav { 
-            display: none; 
-            background: #fff; 
-            border-top: 1px solid #ccc; 
-            height: 60px; 
-            justify-content: space-around; 
-            align-items: center; 
+        .contact-item {
+            display: flex;
+            align-items: center;
+            padding: 8px 15px;
+            cursor: pointer;
+            transition: 0.1s;
+            border-bottom: 1px solid #E0E0E0;
         }
-        .nav-item { display: flex; flex-direction: column; align-items: center; font-size: 10px; color: #777; cursor: pointer; }
-        .nav-item.active { color: var(--viber-purple); }
+        .contact-item:hover { background: #dfdfe1; }
+        .contact-item.active { background: var(--v-accent-purple); color: white; }
+        .contact-item.active .v-label { color: white !important; }
+
+        .avatar { width: 50px; height: 50px; border-radius: 4px; object-fit: cover; margin-left: auto; border: 1px solid #ccc; }
+        .contact-info { flex: 1; }
+        .contact-name { font-size: 15px; font-weight: 500; }
+        .v-label { font-size: 10px; color: var(--v-dark-purple); display: flex; align-items: center; gap: 3px; }
+
+        /* ПРАВАЯ КОЛОНКА (КОНТЕНТ) */
+        #content-area { flex: 1; overflow-y: auto; background: white; }
+
+        .profile-view { padding: 30px; display: flex; gap: 25px; }
+        .big-avatar { width: 220px; height: 220px; border: 1px solid #ddd; object-fit: cover; }
+        
+        .profile-info { flex: 1; }
+        .profile-info h2 { margin: 0; font-size: 28px; font-weight: normal; }
+        .status-online { color: #8DC34B; font-size: 14px; margin-bottom: 20px; display: block; }
+
+        .btn-row { display: flex; gap: 10px; margin-top: 20px; }
+        .v-btn { 
+            background: var(--v-accent-purple); 
+            color: white; 
+            border: none; 
+            padding: 12px 25px; 
+            font-size: 16px; 
+            cursor: pointer; 
+            border-radius: 2px;
+            min-width: 180px;
+        }
+        .v-btn:hover { background: var(--v-dark-purple); }
+
+        .phone-section { margin-top: 30px; border-top: 1px solid #eee; padding-top: 15px; }
+        .phone-label { color: #999; font-size: 11px; text-transform: uppercase; display: block; margin-bottom: 10px; }
+        .phone-row { display: flex; justify-content: space-between; align-items: center; }
+
+        /* ВХОД */
+        #auth-screen { position: fixed; inset: 0; background: var(--v-dark-purple); z-index: 100; display: flex; justify-content: center; align-items: center; color: white; }
 
         @media (max-width: 768px) {
-            .column { width: 100% !important; display: none; border: none; }
-            .column.active-mob { display: flex; }
-            .mobile-nav { display: flex; }
-            #col-left { width: 100%; }
+            #sidebar { width: 100%; }
+            #content-area { display: none; }
+            #content-area.mobile-visible { display: block; position: fixed; inset: 0; z-index: 50; padding-top: 50px;}
         }
-
-        /* АНИМАЦИЯ ТОСТОВ */
-        .toast { background: #333; color: white; border-radius: 20px; padding: 8px 15px; }
     </style>
 </head>
 <body>
 
-    <header id="app-header">ЛАСТОЧКА</header>
-
-    <div id="auth-box">
-        <div class="card" style="width:300px; text-align:center;">
-            <h2 style="color:var(--viber-purple)">Регистрация</h2>
-            <input type="number" id="my-id-input" placeholder="Ваш ID">
-            <input type="text" id="my-nick-input" placeholder="Имя">
-            <input type="password" id="my-pass-input" placeholder="Пароль">
-            <button onclick="handleAuth('login')" style="width:100%; margin-top:10px;">ВОЙТИ</button>
-            <p onclick="handleAuth('reg')" style="font-size:12px; color:var(--viber-purple); cursor:pointer; margin-top:10px;">Создать аккаунт</p>
+    <div id="auth-screen">
+        <div style="width: 300px; text-align: center;">
+            <h1 style="font-size: 40px; margin-bottom: 10px;">ЛАСТОЧКА</h1>
+            <input type="number" id="my-id-input" placeholder="Ваш ID" style="width:100%; padding:10px; margin:5px 0;">
+            <input type="password" id="my-pass-input" placeholder="Пароль" style="width:100%; padding:10px; margin:5px 0;">
+            <button onclick="handleAuth()" style="width:100%; padding:12px; background: white; color: var(--v-dark-purple); border:none; font-weight:bold; cursor:pointer; margin-top:10px;">ВОЙТИ</button>
         </div>
     </div>
 
-    <div id="main-ui">
-        <div class="column active-mob" id="col-left">
-            <div style="padding:15px; background: #fff;">
-                <input type="text" placeholder="Поиск контактов..." style="background:#eee; border:none;">
+    <header>
+        <div class="nav-icons">
+            <span title="Чаты">💬</span>
+            <span title="Контакты" class="active">👤</span>
+            <span title="Журнал">🕒</span>
+        </div>
+        <div class="right-icons">
+            <span>★</span>
+            <span>🔍</span>
+            <span>⋮</span>
+        </div>
+    </header>
+
+    <div id="main-container">
+        <div id="sidebar">
+            <div class="list-header">You <span style="float:right;">194 contacts</span></div>
+            <div id="contacts-list" style="overflow-y: auto;">
+                </div>
+        </div>
+
+        <div id="content-area">
+            <div id="profile-placeholder" style="text-align:center; padding-top:100px; color:#999;">
+                Выберите контакт для начала общения
             </div>
-            <div id="groups-list" class="scroll-area" style="background:#fff;"></div>
-            <div id="users-list" class="scroll-area" style="background:#fff; border-top:1px solid #eee;"></div>
-        </div>
+            
+            <div id="profile-details" style="display:none;">
+                <div class="profile-view">
+                    <img id="p-avatar" class="big-avatar" src="">
+                    <div class="profile-info">
+                        <h2 id="p-name">Имя пользователя</h2>
+                        <span class="status-online">Online</span>
+                        
+                        <div class="btn-row">
+                            <button class="v-btn" onclick="alert('Вызов...')">Free Call</button>
+                            <button class="v-btn" onclick="startChat()">Free Message</button>
+                        </div>
 
-        <div class="column" id="col-main">
-            <div id="chat-window">
-                <div id="chat-header">
-                    <button onclick="switchTab('col-left')" style="background:none; color:var(--viber-purple); font-size:20px;">←</button>
-                    <img id="chat-avatar" src="" style="width:35px; height:35px; border-radius:50%; display:none;">
-                    <b id="chat-title">Выберите чат</b>
-                </div>
-                
-                <div id="messages-list" class="scroll-area">
-                    <div style="text-align:center; color:#888; margin-top:50px;">Здесь будет ваша переписка</div>
-                </div>
-
-                <div class="input-area">
-                    <button onclick="sendImagePrompt()" style="background:none; color:var(--viber-purple); font-size:20px;">+</button>
-                    <input type="text" id="msg-input" placeholder="Сообщение..." onkeyup="if(event.keyCode===13) sendMessage()">
-                    <button onclick="sendMessage()">Отпр.</button>
+                        <div class="phone-section">
+                            <span class="phone-label">Phone</span>
+                            <div class="phone-row">
+                                <span id="p-id-label">ID: 000000</span>
+                                <span style="font-size: 20px;">📠</span>
+                            </div>
+                            <small style="color:#aaa;">Regular call</small>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
-    </div>
 
-    <div class="mobile-nav" id="mob-nav" style="display:none;">
-        <div class="nav-item active" onclick="switchTab('col-left')">
-            <span>💬</span>
-            <b>Чаты</b>
-        </div>
-        <div class="nav-item" onclick="loadUsers()">
-            <span>👥</span>
-            <b>Контакты</b>
-        </div>
-        <div class="nav-item" onclick="showSettings()">
-            <span>⚙️</span>
-            <b>Настройки</b>
+            <div id="chat-box" style="display:none; flex-direction:column; height:100%;">
+                <div style="padding:15px; border-bottom:1px solid #ddd; font-weight:bold; display:flex; justify-content:space-between;">
+                    <span id="chat-with-name">Чат</span>
+                    <button onclick="closeChat()" style="border:none; background:none; cursor:pointer; color:var(--v-accent-purple);">ЗАКРЫТЬ</button>
+                </div>
+                <div id="messages" style="flex:1; overflow-y:auto; padding:15px; background:#DADBD3;"></div>
+                <div style="padding:10px; display:flex; gap:10px; background:#eee;">
+                    <input type="text" id="m-input" placeholder="Введите сообщение..." style="flex:1; padding:10px; border:1px solid #ccc; border-radius:20px;">
+                    <button onclick="sendMsg()" style="background:var(--v-accent-purple); color:white; border:none; padding:0 20px; border-radius:20px;">ОТПР.</button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -172,132 +183,89 @@
         const SUPABASE_KEY = 'sb_publishable_Nne-WFtskhN6oEkYkgtWhA_KHo2W8YC'; 
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        let myId, myNick, currentChatId;
+        let myId, currentTargetId;
         const DEFAULT_AVATAR = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRLCFpHxyg6G5c4uQQy6U5SlgJr6qq6P6ot7Q&s";
 
-        window.onload = async () => {
-            const sId = localStorage.getItem('saved_user_id');
-            const sPass = localStorage.getItem('saved_user_pass');
-            if (sId && sPass) {
-                const { data: user } = await _supabase.from('users').select('*').eq('id_number', sId).eq('password', sPass).single();
-                if (user) loginSuccess(user);
-            }
-        };
-
-        async function handleAuth(mode) {
+        async function handleAuth() {
             const id = document.getElementById('my-id-input').value;
             const pass = document.getElementById('my-pass-input').value;
-            const nick = document.getElementById('my-nick-input').value;
-
-            if (mode === 'reg') {
-                await _supabase.from('users').insert([{ id_number: id, password: pass, nickname: nick, avatar_url: DEFAULT_AVATAR }]);
-            }
-
             const { data: user } = await _supabase.from('users').select('*').eq('id_number', id).eq('password', pass).single();
             if (user) {
-                localStorage.setItem('saved_user_id', id);
-                localStorage.setItem('saved_user_pass', pass);
-                loginSuccess(user);
-            } else alert("Ошибка!");
+                myId = id;
+                document.getElementById('auth-screen').style.display = 'none';
+                loadContacts();
+            } else alert("Ошибка входа!");
         }
 
-        function loginSuccess(user) {
-            myId = user.id_number;
-            myNick = user.nickname;
-            document.getElementById('auth-box').style.display = 'none';
-            document.getElementById('main-ui').style.display = 'flex';
-            if(window.innerWidth <= 768) document.getElementById('mob-nav').style.display = 'flex';
-            loadGroups();
-            loadUsers();
-        }
-
-        function switchTab(id) {
-            document.querySelectorAll('.column').forEach(c => c.classList.remove('active-mob'));
-            document.getElementById(id).classList.add('active-mob');
-        }
-
-        async function loadUsers() {
-            const { data } = await _supabase.from('users').select('*');
-            if(data) {
-                const list = document.getElementById('users-list');
-                list.innerHTML = '<div style="padding:10px; font-weight:bold; color:#777;">КОНТАКТЫ</div>';
-                list.innerHTML += data.map(u => `
-                    <div style="display:flex; align-items:center; padding:10px; border-bottom:1px solid #eee; cursor:pointer;" onclick="openPrivate('${u.id_number}', '${u.nickname}', '${u.avatar_url}')">
-                        <img src="${u.avatar_url || DEFAULT_AVATAR}" style="width:40px; height:40px; border-radius:50%; margin-right:10px;">
-                        <div>
-                            <b>${u.nickname}</b><br>
-                            <small style="color:#aaa;">ID: ${u.id_number}</small>
-                        </div>
+        async function loadContacts() {
+            const { data: users } = await _supabase.from('users').select('*');
+            const list = document.getElementById('contacts-list');
+            list.innerHTML = '<div class="contact-group-label">A</div>'; // Упростим сортировку
+            
+            users.forEach(u => {
+                const div = document.createElement('div');
+                div.className = 'contact-item';
+                div.onclick = () => showProfile(u);
+                div.innerHTML = `
+                    <div class="contact-info">
+                        <div class="contact-name">${u.nickname}</div>
+                        <div class="v-label">📞 Viber</div>
                     </div>
-                `).join('');
-            }
-            switchTab('col-left');
+                    <img src="${u.avatar_url || DEFAULT_AVATAR}" class="avatar">
+                `;
+                list.appendChild(div);
+            });
         }
 
-        async function loadGroups() {
-            const { data } = await _supabase.from('groups').select('*');
-            if(data) {
-                const list = document.getElementById('groups-list');
-                list.innerHTML = '<div style="padding:10px; font-weight:bold; color:#777;">ПУБЛИЧНЫЕ ЧАТЫ</div>';
-                list.innerHTML += data.map(g => `
-                    <div style="display:flex; align-items:center; padding:10px; border-bottom:1px solid #eee; cursor:pointer;" onclick="startGroupChat('${g.id}','${g.name}')">
-                        <div style="width:40px; height:40px; background:var(--viber-purple); border-radius:12px; color:white; display:flex; justify-content:center; align-items:center; margin-right:10px; font-weight:bold;">#</div>
-                        <b>${g.name}</b>
-                    </div>
-                `).join('');
-            }
+        function showProfile(user) {
+            currentTargetId = user.id_number;
+            document.querySelectorAll('.contact-item').forEach(el => el.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+
+            document.getElementById('profile-placeholder').style.display = 'none';
+            document.getElementById('chat-box').style.display = 'none';
+            document.getElementById('profile-details').style.display = 'block';
+
+            document.getElementById('p-name').innerText = user.nickname;
+            document.getElementById('p-avatar').src = user.avatar_url || DEFAULT_AVATAR;
+            document.getElementById('p-id-label').innerText = "ID: " + user.id_number;
+
+            if(window.innerWidth <= 768) document.getElementById('content-area').classList.add('mobile-visible');
         }
 
-        async function openPrivate(id, nick, avatar) {
-            currentChatId = [myId, id].sort().join("_");
-            document.getElementById('chat-title').innerText = nick;
-            document.getElementById('chat-avatar').src = avatar || DEFAULT_AVATAR;
-            document.getElementById('chat-avatar').style.display = 'block';
-            switchTab('col-main');
+        function startChat() {
+            document.getElementById('profile-details').style.display = 'none';
+            document.getElementById('chat-box').style.display = 'flex';
+            document.getElementById('chat-with-name').innerText = "Чат с ID " + currentTargetId;
             loadMessages();
         }
 
-        async function sendMessage() {
-            const inp = document.getElementById('msg-input');
-            if(!inp.value.trim() || !currentChatId) return;
-            await _supabase.from('messages').insert([{ sender_id: myId, chat_id: currentChatId, text: inp.value.trim() }]);
-            inp.value = "";
+        function closeChat() {
+            document.getElementById('chat-box').style.display = 'none';
+            document.getElementById('profile-details').style.display = 'block';
+        }
+
+        async function sendMsg() {
+            const txt = document.getElementById('m-input').value;
+            if(!txt) return;
+            const chatId = [myId, currentTargetId].sort().join("_");
+            await _supabase.from('messages').insert([{ sender_id: myId, chat_id: chatId, text: txt }]);
+            document.getElementById('m-input').value = "";
             loadMessages();
         }
 
         async function loadMessages() {
-            const { data: messages } = await _supabase.from('messages').select('*').eq('chat_id', currentChatId).order('created_at', { ascending: true });
-            const box = document.getElementById('messages-list');
-            box.innerHTML = (messages || []).map(m => {
-                const isMine = m.sender_id == myId;
-                return `
-                    <div class="msg-container ${isMine ? 'msg-mine' : 'msg-other'}">
-                        <div class="msg-content">
-                            ${m.text}
-                            <span class="msg-info">${new Date(m.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
-                        </div>
+            const chatId = [myId, currentTargetId].sort().join("_");
+            const { data: msgs } = await _supabase.from('messages').select('*').eq('chat_id', chatId).order('created_at', {ascending: true});
+            const box = document.getElementById('messages');
+            box.innerHTML = msgs.map(m => `
+                <div style="margin-bottom:10px; text-align: ${m.sender_id == myId ? 'right' : 'left'}">
+                    <div style="display:inline-block; padding:8px 12px; border-radius:10px; background:${m.sender_id == myId ? '#E1FFC7' : '#FFF'}; box-shadow: 0 1px 1px #999;">
+                        ${m.text}
                     </div>
-                `;
-            }).join('');
+                </div>
+            `).join('');
             box.scrollTop = box.scrollHeight;
-        }
-
-        function startGroupChat(id, name) {
-            currentChatId = "group_" + id;
-            document.getElementById('chat-title').innerText = name;
-            document.getElementById('chat-avatar').style.display = 'none';
-            switchTab('col-main');
-            loadMessages();
-        }
-        
-        // Другие функции (настройки, фото) можно перенести из прошлой версии
-        function showSettings() {
-            alert("Настройки будут доступны в следующем обновлении!");
-        }
-
-        function sendImagePrompt() {
-            const url = prompt("URL картинки:");
-            if(url) { document.getElementById('msg-input').value = url; sendMessage(); }
         }
     </script>
 </body>
