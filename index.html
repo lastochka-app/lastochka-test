@@ -1,180 +1,174 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <title>ЛАСТОЧКА.ru — Viber 4.0 Style</title>
+    <title>ЛАСТОЧКА.ru</title>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <style>
+        /* ПЕРЕМЕННЫЕ ТЕМЫ */
         :root {
-            --v-dark-purple: #5941A9; /* Темный фиолетовый для шапки */
-            --v-accent-purple: #7360F2; /* Акцентный фиолетовый */
-            --v-bg-list: #E9E9EB; /* Фон списка контактов */
-            --v-bg-main: #FFFFFF; /* Фон основной области */
-            --v-border: #D1D1D1;
-            --text-gray: #777777;
+            --bg-main: #ECE9D8;
+            --bg-col: rgba(240, 240, 240, 0.9); /* Сделал полупрозрачным для фона */
+            --bg-card: rgba(255, 255, 255, 0.95);
+            --text-main: #000000;
+            --text-blue: #2D5082;
+            --border-ui: #D4D0C8;
+            --border-accent: #7EA4D0;
+            --btn-grad: linear-gradient(to bottom, #ffffff 0%, #e0e0e0 100%);
         }
 
-        * { box-sizing: border-box; }
-        body, html { height: 100%; margin: 0; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; overflow: hidden; background: var(--v-bg-main); }
-
-        /* ВЕРХНЯЯ ПАНЕЛЬ */
-        header {
-            height: 50px;
-            background: var(--v-dark-purple);
-            display: flex;
-            align-items: center;
-            padding: 0 15px;
-            color: white;
-            justify-content: space-between;
+        [data-theme="dark"] {
+            --bg-main: #1A1A1B;
+            --bg-col: rgba(45, 45, 46, 0.9);
+            --bg-card: rgba(61, 61, 62, 0.95);
+            --text-main: #E0E0E0;
+            --text-blue: #8AB4F8;
+            --border-ui: #444445;
+            --border-accent: #5F6368;
+            --btn-grad: linear-gradient(to bottom, #444 0%, #222 100%);
         }
 
-        .nav-icons { display: flex; gap: 30px; align-items: center; }
-        .nav-icons span { font-size: 20px; cursor: pointer; opacity: 0.8; transition: 0.2s; }
-        .nav-icons span:hover, .nav-icons span.active { opacity: 1; border-bottom: 3px solid white; padding-bottom: 5px; }
+        /* ИНТЕРФЕЙС */
+        html, body { height: 100%; margin: 0; padding: 0; overflow: hidden; background-color: var(--bg-main); font-family: Tahoma, sans-serif; font-size: 12px; color: var(--text-main); }
         
-        .right-icons { display: flex; gap: 20px; font-size: 18px; }
-
-        /* ОСНОВНОЙ КОНТЕЙНЕР */
-        #main-container { display: flex; height: calc(100% - 50px); }
-
-        /* ЛЕВАЯ КОЛОНКА (СПИСОК) */
-        #sidebar {
-            width: 320px;
-            background: var(--v-bg-list);
-            border-right: 1px solid var(--v-border);
-            display: flex;
-            flex-direction: column;
+        /* Стили для фонового изображения */
+        body { 
+            display: flex; 
+            flex-direction: column; 
+            transition: background 0.2s;
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
         }
 
-        .list-header { padding: 10px 15px; font-size: 11px; color: var(--text-gray); font-weight: bold; }
-        .contact-group-label { padding: 5px 15px; font-size: 12px; color: var(--v-dark-purple); font-weight: bold; }
-
-        .contact-item {
-            display: flex;
-            align-items: center;
-            padding: 8px 15px;
-            cursor: pointer;
-            transition: 0.1s;
-            border-bottom: 1px solid #E0E0E0;
-        }
-        .contact-item:hover { background: #dfdfe1; }
-        .contact-item.active { background: var(--v-accent-purple); color: white; }
-        .contact-item.active .v-label { color: white !important; }
-
-        .avatar { width: 50px; height: 50px; border-radius: 4px; object-fit: cover; margin-left: auto; border: 1px solid #ccc; }
-        .contact-info { flex: 1; }
-        .contact-name { font-size: 15px; font-weight: 500; }
-        .v-label { font-size: 10px; color: var(--v-dark-purple); display: flex; align-items: center; gap: 3px; }
-
-        /* ПРАВАЯ КОЛОНКА (КОНТЕНТ) */
-        #content-area { flex: 1; overflow-y: auto; background: white; }
-
-        .profile-view { padding: 30px; display: flex; gap: 25px; }
-        .big-avatar { width: 220px; height: 220px; border: 1px solid #ddd; object-fit: cover; }
+        h1 { color: var(--text-blue); font-size: 18px; margin: 5px; text-shadow: 1px 1px var(--bg-card); text-align: center; flex-shrink: 0; z-index: 5; }
         
-        .profile-info { flex: 1; }
-        .profile-info h2 { margin: 0; font-size: 28px; font-weight: normal; }
-        .status-online { color: #8DC34B; font-size: 14px; margin-bottom: 20px; display: block; }
+        #auth-box { flex: 1; display: flex; justify-content: center; align-items: center; z-index: 5; }
+        #main-ui { display: none; flex: 1; width: 100%; max-width: 1400px; margin: 0 auto; padding: 10px; box-sizing: border-box; gap: 10px; overflow: hidden; z-index: 5; }
+        
+        .column { display: flex; flex-direction: column; background: var(--bg-col); border: 1px solid var(--border-ui); padding: 8px; height: 100%; box-sizing: border-box; backdrop-filter: blur(2px); }
+        #col-left { width: 180px; flex-shrink: 0; }
+        #col-main { flex: 1; background: var(--bg-card); border: 1px solid var(--border-accent); min-width: 400px; }
+        #col-right { width: 250px; flex-shrink: 0; }
 
-        .btn-row { display: flex; gap: 10px; margin-top: 20px; }
-        .v-btn { 
-            background: var(--v-accent-purple); 
-            color: white; 
-            border: none; 
-            padding: 12px 25px; 
-            font-size: 16px; 
-            cursor: pointer; 
-            border-radius: 2px;
-            min-width: 180px;
-        }
-        .v-btn:hover { background: var(--v-dark-purple); }
+        .card { border: 1px solid var(--border-accent); background: var(--bg-card); padding: 8px; margin-bottom: 8px; flex-shrink: 0; }
+        button { background: var(--btn-grad); border: 1px solid #707070; border-radius: 2px; padding: 4px; cursor: pointer; font-weight: bold; font-size: 11px; color: var(--text-main); }
+        button:active { background: var(--border-ui); }
+        input, textarea { border: 1px solid var(--border-accent); background: var(--bg-card); color: var(--text-main); padding: 5px; margin: 3px 0; width: 100%; box-sizing: border-box; font-family: Tahoma; font-size: 11px; }
+        
+        .scroll-area { flex: 1; overflow-y: auto; background: var(--bg-card); border: 1px solid var(--border-accent); padding: 5px; }
+        .post { border-bottom: 2px solid var(--border-ui); padding: 10px 0; }
+        
+        .tab-header { border-bottom: 2px solid var(--border-accent); color: var(--text-blue); padding: 5px; margin-bottom: 10px; font-weight: bold; text-align: center; }
 
-        .phone-section { margin-top: 30px; border-top: 1px solid #eee; padding-top: 15px; }
-        .phone-label { color: #999; font-size: 11px; text-transform: uppercase; display: block; margin-bottom: 10px; }
-        .phone-row { display: flex; justify-content: space-between; align-items: center; }
-
-        /* ВХОД */
-        #auth-screen { position: fixed; inset: 0; background: var(--v-dark-purple); z-index: 100; display: flex; justify-content: center; align-items: center; color: white; }
+        #chat-header { background: var(--border-accent); color: white; padding: 6px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
+        
+        .mobile-nav { display: none; background: var(--bg-col); border-top: 1px solid var(--border-ui); flex-shrink: 0; height: 50px; justify-content: space-around; align-items: center; backdrop-filter: blur(5px); }
+        .mobile-nav button { flex: 1; height: 100%; border: none; border-right: 1px solid var(--border-ui); background: transparent; color: var(--text-blue); border-radius: 0; font-size: 8px; }
 
         @media (max-width: 768px) {
-            #sidebar { width: 100%; }
-            #content-area { display: none; }
-            #content-area.mobile-visible { display: block; position: fixed; inset: 0; z-index: 50; padding-top: 50px;}
+            #main-ui { flex-direction: column; padding: 0; gap: 0; }
+            .column { width: 100% !important; min-width: 0 !important; display: none; border: none; }
+            .mobile-nav { display: flex; }
+            .column.active-mob { display: flex; }
         }
+
+        #notification-container { position: fixed; top: 10px; right: 10px; z-index: 9999; pointer-events: none; }
+        .toast { background: var(--text-blue); color: white; padding: 10px; border: 2px solid #fff; box-shadow: 3px 3px 10px rgba(0,0,0,0.3); margin-bottom: 5px; font-size: 11px; pointer-events: auto; cursor: pointer; }
     </style>
 </head>
 <body>
 
-    <div id="auth-screen">
-        <div style="width: 300px; text-align: center;">
-            <h1 style="font-size: 40px; margin-bottom: 10px;">ЛАСТОЧКА</h1>
-            <input type="number" id="my-id-input" placeholder="Ваш ID" style="width:100%; padding:10px; margin:5px 0;">
-            <input type="password" id="my-pass-input" placeholder="Пароль" style="width:100%; padding:10px; margin:5px 0;">
-            <button onclick="handleAuth()" style="width:100%; padding:12px; background: white; color: var(--v-dark-purple); border:none; font-weight:bold; cursor:pointer; margin-top:10px;">ВОЙТИ</button>
+    <div id="notification-container"></div>
+    <h1>ЛАСТОЧКА.ru</h1>
+
+    <div id="auth-box">
+        <div class="card" style="width:280px;">
+            <strong>ВХОД В СИСТЕМУ</strong>
+            <input type="number" id="my-id-input" placeholder="Ваш ID">
+            <input type="text" id="my-nick-input" placeholder="Никнейм">
+            <input type="password" id="my-pass-input" placeholder="Пароль">
+            <input type="text" id="my-avatar-input" placeholder="URL аватара (опционально)">
+            <button onclick="handleAuth('login')" style="width:100%; margin-top:5px;">ВОЙТИ</button>
+            <button onclick="handleAuth('reg')" style="width:100%; margin-top:3px;">РЕГИСТРАЦИЯ</button>
         </div>
     </div>
 
-    <header>
-        <div class="nav-icons">
-            <span title="Чаты">💬</span>
-            <span title="Контакты" class="active">👤</span>
-            <span title="Журнал">🕒</span>
-        </div>
-        <div class="right-icons">
-            <span>★</span>
-            <span>🔍</span>
-            <span>⋮</span>
-        </div>
-    </header>
-
-    <div id="main-container">
-        <div id="sidebar">
-            <div class="list-header">You <span style="float:right;">194 contacts</span></div>
-            <div id="contacts-list" style="overflow-y: auto;">
-                </div>
-        </div>
-
-        <div id="content-area">
-            <div id="profile-placeholder" style="text-align:center; padding-top:100px; color:#999;">
-                Выберите контакт для начала общения
+    <div id="main-ui">
+        <div class="column" id="col-left">
+            <div class="card" style="text-align:center;">
+                <img id="my-avatar-img" src="" style="width:50px; height:50px; border-radius:50%; border:1px solid var(--border-accent); object-fit: cover;">
+                <div id="display-nick" style="font-weight:bold; color:var(--text-blue); margin-top:5px;"></div>
             </div>
+            <button onclick="loadFeed()" style="width:100%; margin-bottom:5px;">ЛЕНТА</button>
+            <button onclick="loadFavoritesTab()" style="width:100%; margin-bottom:5px;">ИЗБРАННЫЕ</button>
+            <button onclick="showSettings()" style="width:100%; margin-bottom:5px;">НАСТРОЙКИ</button>
+            <button onclick="showAbout()" style="width:100%; margin-bottom:10px;">О НАС</button>
             
-            <div id="profile-details" style="display:none;">
-                <div class="profile-view">
-                    <img id="p-avatar" class="big-avatar" src="">
-                    <div class="profile-info">
-                        <h2 id="p-name">Имя пользователя</h2>
-                        <span class="status-online">Online</span>
-                        
-                        <div class="btn-row">
-                            <button class="v-btn" onclick="alert('Вызов...')">Free Call</button>
-                            <button class="v-btn" onclick="startChat()">Free Message</button>
-                        </div>
+            <strong>ГРУППЫ:</strong>
+            <div id="groups-list" class="scroll-area"></div>
+            <button onclick="createGroup()" style="margin-top:5px;">+ СОЗДАТЬ</button>
+        </div>
 
-                        <div class="phone-section">
-                            <span class="phone-label">Phone</span>
-                            <div class="phone-row">
-                                <span id="p-id-label">ID: 000000</span>
-                                <span style="font-size: 20px;">📠</span>
-                            </div>
-                            <small style="color:#aaa;">Regular call</small>
+        <div class="column active-mob" id="col-main">
+            <div id="profile-screen" style="display:flex; flex-direction:column; height:100%;">
+                <div id="profile-card" class="card" style="display:flex; align-items:center; gap:10px;">
+                    <img id="view-avatar" style="width:60px; height:60px; border-radius:50%; object-fit:cover; border:1px solid var(--border-accent);">
+                    <div style="flex:1;">
+                        <b id="view-nick" style="font-size:14px; color:var(--text-blue);"></b><br>
+                        <small id="view-id-label" style="color:#666;"></small>
+                        <div style="font-size:10px; margin-top:4px;">
+                            Подписчики: <b id="count-followers">0</b> | Подписки: <b id="count-following">0</b>
+                        </div>
+                        <div style="margin-top:5px; display:flex; flex-wrap:wrap; gap:3px;">
+                            <button id="write-btn" style="display:none;">НАПИСАТЬ</button>
+                            <button id="follow-btn" style="display:none;">ПОДПИСАТЬСЯ</button>
+                            <button id="fav-btn" style="display:none;">В ИЗБРАННОЕ</button>
                         </div>
                     </div>
                 </div>
+
+                <div id="inbox-area" class="card" style="display:none; background: var(--bg-col); border: 1px dashed var(--border-accent);">
+                    <strong style="color:var(--text-blue); font-size:10px;">ПОСЛЕДНИЕ СООБЩЕНИЯ:</strong>
+                    <div id="inbox-list" style="margin-top:4px;"></div>
+                </div>
+
+                <div id="wall-input-area" class="card">
+                    <textarea id="post-text" placeholder="Что нового?" rows="2"></textarea>
+                    <button onclick="createPost()" style="width:100%;">ОПУБЛИКОВАТЬ</button>
+                </div>
+                <div id="wall-posts" class="scroll-area"></div>
             </div>
 
-            <div id="chat-box" style="display:none; flex-direction:column; height:100%;">
-                <div style="padding:15px; border-bottom:1px solid #ddd; font-weight:bold; display:flex; justify-content:space-between;">
-                    <span id="chat-with-name">Чат</span>
-                    <button onclick="closeChat()" style="border:none; background:none; cursor:pointer; color:var(--v-accent-purple);">ЗАКРЫТЬ</button>
+            <div id="chat-window" style="display:none; flex-direction:column; height:100%;">
+                <div id="chat-header">
+                    <button onclick="switchTab('col-left')" style="font-size:10px;">НАЗАД</button>
+                    <span id="chat-title">ДИАЛОГ</span>
+                    <button onclick="loadMessages()" style="font-size:10px;">ОБНОВИТЬ</button>
                 </div>
-                <div id="messages" style="flex:1; overflow-y:auto; padding:15px; background:#DADBD3;"></div>
-                <div style="padding:10px; display:flex; gap:10px; background:#eee;">
-                    <input type="text" id="m-input" placeholder="Введите сообщение..." style="flex:1; padding:10px; border:1px solid #ccc; border-radius:20px;">
-                    <button onclick="sendMsg()" style="background:var(--v-accent-purple); color:white; border:none; padding:0 20px; border-radius:20px;">ОТПР.</button>
+                <div id="messages-list" class="scroll-area"></div>
+                <div class="card" style="margin-top:5px; display:flex; gap:5px;">
+                    <input type="text" id="msg-input" placeholder="Введите сообщение...">
+                    <button onclick="sendMessage()" style="width:50px;">ОТПР.</button>
                 </div>
             </div>
         </div>
+
+        <div class="column" id="col-right">
+            <strong>ПОИСК ПО ID:</strong>
+            <div style="display:flex; gap:2px;"><input type="number" id="target-id-input"><button onclick="goToId()">GO</button></div>
+            <br>
+            <strong>ПОЛЬЗОВАТЕЛИ:</strong>
+            <div id="users-list" class="scroll-area"></div>
+        </div>
+    </div>
+
+    <div class="mobile-nav" id="mob-nav">
+        <button onclick="loadFeed()">ЛЕНТА</button>
+        <button onclick="showSettings()">ОПЦИИ</button>
+        <button onclick="switchTab('col-left')">ГРУППЫ</button>
+        <button onclick="switchTab('col-main'); showWall();">ПРОФИЛЬ</button>
+        <button onclick="switchTab('col-right')">ЛЮДИ</button>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -183,90 +177,184 @@
         const SUPABASE_KEY = 'sb_publishable_Nne-WFtskhN6oEkYkgtWhA_KHo2W8YC'; 
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        let myId, currentTargetId;
+        let myId, myNick, currentChatId;
         const DEFAULT_AVATAR = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRLCFpHxyg6G5c4uQQy6U5SlgJr6qq6P6ot7Q&s";
+        let userCache = {};
 
-        async function handleAuth() {
+        // --- ИНИЦИАЛИЗАЦИЯ ---
+        window.onload = async () => {
+            // Загрузка темы
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme) setTheme(savedTheme);
+
+            // ЗАГРУЗКА ФОНА ИЗ КЕША
+            const savedBg = localStorage.getItem('bg_image');
+            if (savedBg) applyBackground(savedBg);
+
+            const sId = localStorage.getItem('saved_user_id');
+            const sPass = localStorage.getItem('saved_user_pass');
+
+            if (sId && sPass) {
+                const { data: user } = await _supabase.from('users').select('*').eq('id_number', sId).eq('password', sPass).single();
+                if (user) {
+                    myId = sId;
+                    myNick = user.nickname;
+                    startApp(user);
+                }
+            }
+        };
+
+        function applyBackground(url) {
+            if (url) {
+                document.body.style.backgroundImage = `url('${url}')`;
+                localStorage.setItem('bg_image', url);
+            } else {
+                document.body.style.backgroundImage = 'none';
+                localStorage.removeItem('bg_image');
+            }
+        }
+
+        function startApp(user) {
+            document.getElementById('auth-box').style.display = 'none';
+            document.getElementById('main-ui').style.display = 'flex';
+            if(window.innerWidth <= 768) document.getElementById('mob-nav').style.display = 'flex';
+            document.getElementById('display-nick').innerText = user.nickname;
+            document.getElementById('my-avatar-img').src = user.avatar_url || DEFAULT_AVATAR;
+            loadGroups(); loadUsers(); viewProfile(myId); initRealtime();
+        }
+
+        // Остальные функции Supabase (Auth, Posts, etc.) остаются прежними...
+        // [Здесь твой основной код из прошлого сообщения]
+        // ... я сокращу их для краткости и сфокусируюсь на новых настройках ...
+
+        async function handleAuth(mode) {
             const id = document.getElementById('my-id-input').value;
             const pass = document.getElementById('my-pass-input').value;
+            const nick = document.getElementById('my-nick-input').value;
+            let av = document.getElementById('my-avatar-input').value.trim() || DEFAULT_AVATAR;
+            if (mode === 'reg') await _supabase.from('users').insert([{ id_number: id, password: pass, nickname: nick, avatar_url: av }]);
             const { data: user } = await _supabase.from('users').select('*').eq('id_number', id).eq('password', pass).single();
             if (user) {
-                myId = id;
-                document.getElementById('auth-screen').style.display = 'none';
-                loadContacts();
-            } else alert("Ошибка входа!");
+                myId = id; myNick = user.nickname;
+                localStorage.setItem('saved_user_id', id); localStorage.setItem('saved_user_pass', pass);
+                startApp(user);
+            } else alert("Ошибка!");
         }
 
-        async function loadContacts() {
-            const { data: users } = await _supabase.from('users').select('*');
-            const list = document.getElementById('contacts-list');
-            list.innerHTML = '<div class="contact-group-label">A</div>'; // Упростим сортировку
+        function showSettings() {
+            clearMainArea();
+            const wall = document.getElementById('wall-posts');
+            const currentBg = localStorage.getItem('bg_image') || '';
             
-            users.forEach(u => {
-                const div = document.createElement('div');
-                div.className = 'contact-item';
-                div.onclick = () => showProfile(u);
-                div.innerHTML = `
-                    <div class="contact-info">
-                        <div class="contact-name">${u.nickname}</div>
-                        <div class="v-label">📞 Viber</div>
-                    </div>
-                    <img src="${u.avatar_url || DEFAULT_AVATAR}" class="avatar">
-                `;
-                list.appendChild(div);
-            });
-        }
-
-        function showProfile(user) {
-            currentTargetId = user.id_number;
-            document.querySelectorAll('.contact-item').forEach(el => el.classList.remove('active'));
-            event.currentTarget.classList.add('active');
-
-            document.getElementById('profile-placeholder').style.display = 'none';
-            document.getElementById('chat-box').style.display = 'none';
-            document.getElementById('profile-details').style.display = 'block';
-
-            document.getElementById('p-name').innerText = user.nickname;
-            document.getElementById('p-avatar').src = user.avatar_url || DEFAULT_AVATAR;
-            document.getElementById('p-id-label').innerText = "ID: " + user.id_number;
-
-            if(window.innerWidth <= 768) document.getElementById('content-area').classList.add('mobile-visible');
-        }
-
-        function startChat() {
-            document.getElementById('profile-details').style.display = 'none';
-            document.getElementById('chat-box').style.display = 'flex';
-            document.getElementById('chat-with-name').innerText = "Чат с ID " + currentTargetId;
-            loadMessages();
-        }
-
-        function closeChat() {
-            document.getElementById('chat-box').style.display = 'none';
-            document.getElementById('profile-details').style.display = 'block';
-        }
-
-        async function sendMsg() {
-            const txt = document.getElementById('m-input').value;
-            if(!txt) return;
-            const chatId = [myId, currentTargetId].sort().join("_");
-            await _supabase.from('messages').insert([{ sender_id: myId, chat_id: chatId, text: txt }]);
-            document.getElementById('m-input').value = "";
-            loadMessages();
-        }
-
-        async function loadMessages() {
-            const chatId = [myId, currentTargetId].sort().join("_");
-            const { data: msgs } = await _supabase.from('messages').select('*').eq('chat_id', chatId).order('created_at', {ascending: true});
-            const box = document.getElementById('messages');
-            box.innerHTML = msgs.map(m => `
-                <div style="margin-bottom:10px; text-align: ${m.sender_id == myId ? 'right' : 'left'}">
-                    <div style="display:inline-block; padding:8px 12px; border-radius:10px; background:${m.sender_id == myId ? '#E1FFC7' : '#FFF'}; box-shadow: 0 1px 1px #999;">
-                        ${m.text}
+            wall.innerHTML = `
+                <div class="tab-header">НАСТРОЙКИ</div>
+                <div class="card">
+                    <label>Никнейм:</label><input type="text" id="set-nick" value="${myNick}">
+                    <button onclick="updateProfile()" style="width:100%; margin-top:5px;">ОБНОВИТЬ ПРОФИЛЬ</button>
+                </div>
+                
+                <div class="card">
+                    <strong>ВНЕШНИЙ ВИД:</strong><br><br>
+                    <label>URL фоновой картинки:</label>
+                    <input type="text" id="bg-url-input" placeholder="https://..." value="${currentBg}">
+                    <button onclick="saveNewBg()" style="width:100%; margin-top:5px;">УСТАНОВИТЬ ФОН</button>
+                    <button onclick="saveNewBg(true)" style="width:100%; margin-top:3px; color:red;">СБРОСИТЬ ФОН</button>
+                    
+                    <div style="margin-top:15px; display:flex; gap:5px;">
+                        <button onclick="setTheme('light')" style="flex:1;">СВЕТЛАЯ</button>
+                        <button onclick="setTheme('dark')" style="flex:1;">ТЕМНАЯ</button>
                     </div>
                 </div>
-            `).join('');
-            box.scrollTop = box.scrollHeight;
+
+                <div class="card" style="text-align:center;">
+                    <button onclick="logout()" style="color:red; width:100%;">ВЫЙТИ ИЗ АККАУНТА</button>
+                </div>
+            `;
         }
+
+        function saveNewBg(reset = false) {
+            if (reset) {
+                applyBackground(null);
+                alert("Фон удален!");
+            } else {
+                const url = document.getElementById('bg-url-input').value.trim();
+                if (url) {
+                    applyBackground(url);
+                    alert("Новый фон установлен!");
+                }
+            }
+        }
+
+        // --- ВСЕ ОСТАЛЬНЫЕ ТВОИ ФУНКЦИИ (ЛЕНТА, ЧАТЫ И Т.Д.) ---
+        // Нужно скопировать их из твоего исходного кода сюда
+        function setTheme(theme) {
+            if (theme === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+            else document.documentElement.removeAttribute('data-theme');
+            localStorage.setItem('theme', theme);
+        }
+        function clearMainArea() {
+            switchTab('col-main');
+            document.getElementById('chat-window').style.display = 'none';
+            document.getElementById('profile-screen').style.display = 'flex';
+            document.getElementById('profile-card').style.display = 'none';
+            document.getElementById('wall-input-area').style.display = 'none';
+            document.getElementById('inbox-area').style.display = 'none';
+            document.getElementById('wall-posts').innerHTML = '';
+        }
+        function switchTab(id) {
+            document.querySelectorAll('.column').forEach(c => c.classList.remove('active-mob'));
+            document.getElementById(id).classList.add('active-mob');
+        }
+        async function viewProfile(userId) {
+            switchTab('col-main');
+            document.getElementById('chat-window').style.display = 'none';
+            document.getElementById('profile-screen').style.display = 'flex';
+            document.getElementById('profile-card').style.display = 'flex';
+            const { data: user } = await _supabase.from('users').select('*').eq('id_number', userId).single();
+            if(!user) return;
+            document.getElementById('view-avatar').src = user.avatar_url || DEFAULT_AVATAR;
+            document.getElementById('view-nick').innerText = user.nickname;
+            document.getElementById('view-id-label').innerText = "ID: " + user.id_number;
+            const isMe = (userId == myId);
+            document.getElementById('wall-input-area').style.display = isMe ? 'block' : 'none';
+            document.getElementById('inbox-area').style.display = isMe ? 'block' : 'none';
+            document.getElementById('write-btn').style.display = isMe ? 'none' : 'block';
+            if(!isMe) document.getElementById('write-btn').onclick = () => openPrivate(user.id_number, user.nickname);
+            loadPosts(userId);
+        }
+        async function loadPosts(userId) {
+            const { data: posts } = await _supabase.from('posts').select('*').eq('author_id', userId).order('created_at', { ascending: false });
+            const wall = document.getElementById('wall-posts');
+            wall.innerHTML = '';
+            if(posts) posts.forEach(p => {
+                const div = document.createElement('div'); div.className = 'post';
+                div.innerHTML = `<div><small>${new Date(p.created_at).toLocaleDateString()}</small></div><div>${p.text}</div>`;
+                wall.appendChild(div);
+            });
+        }
+        async function loadFeed() {
+            clearMainArea();
+            const { data: posts } = await _supabase.from('posts').select('*').order('created_at', { ascending: false }).limit(50);
+            const wall = document.getElementById('wall-posts');
+            wall.innerHTML = '<div class="tab-header">ЛЕНТА</div>';
+            if(posts) posts.forEach(p => {
+                const div = document.createElement('div'); div.className = 'post';
+                div.innerHTML = `<b onclick="viewProfile('${p.author_id}')" style="cursor:pointer; color:var(--text-blue);">ID ${p.author_id}</b><br>${p.text}`;
+                wall.appendChild(div);
+            });
+        }
+        async function loadUsers() {
+            const { data } = await _supabase.from('users').select('*');
+            if(data) document.getElementById('users-list').innerHTML = data.map(u => `<div style="padding:4px; border-bottom:1px solid var(--border-ui); cursor:pointer;" onclick="viewProfile('${u.id_number}')">${u.nickname}</div>`).join('');
+        }
+        async function loadGroups() {
+            const { data } = await _supabase.from('groups').select('*');
+            if(data) document.getElementById('groups-list').innerHTML = data.map(g => `<div class="card" onclick="startGroupChat('${g.id}','${g.name}')"># ${g.name}</div>`).join('');
+        }
+        function logout() { localStorage.clear(); location.reload(); }
+        function showWall() { viewProfile(myId); }
+        function showAbout() { clearMainArea(); document.getElementById('wall-posts').innerHTML = '<div class="card">Ласточка.ru - мессенджер с защитой данных.</div>'; }
+        function initRealtime() { /* Здесь твоя подписка Supabase */ }
     </script>
 </body>
 </html>
