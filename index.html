@@ -8,8 +8,8 @@
         /* ПЕРЕМЕННЫЕ ТЕМЫ */
         :root {
             --bg-main: #ECE9D8;
-            --bg-col: rgba(240, 240, 240, 0.9); /* Сделал полупрозрачным для фона */
-            --bg-card: rgba(255, 255, 255, 0.95);
+            --bg-col: #F0F0F0;
+            --bg-card: #ffffff;
             --text-main: #000000;
             --text-blue: #2D5082;
             --border-ui: #D4D0C8;
@@ -19,8 +19,8 @@
 
         [data-theme="dark"] {
             --bg-main: #1A1A1B;
-            --bg-col: rgba(45, 45, 46, 0.9);
-            --bg-card: rgba(61, 61, 62, 0.95);
+            --bg-col: #2D2D2E;
+            --bg-card: #3D3D3E;
             --text-main: #E0E0E0;
             --text-blue: #8AB4F8;
             --border-ui: #444445;
@@ -30,23 +30,13 @@
 
         /* ИНТЕРФЕЙС */
         html, body { height: 100%; margin: 0; padding: 0; overflow: hidden; background-color: var(--bg-main); font-family: Tahoma, sans-serif; font-size: 12px; color: var(--text-main); }
+        body { display: flex; flex-direction: column; transition: background 0.2s; }
+        h1 { color: var(--text-blue); font-size: 18px; margin: 5px; text-shadow: 1px 1px var(--bg-card); text-align: center; flex-shrink: 0; }
         
-        /* Стили для фонового изображения */
-        body { 
-            display: flex; 
-            flex-direction: column; 
-            transition: background 0.2s;
-            background-size: cover;
-            background-position: center;
-            background-attachment: fixed;
-        }
-
-        h1 { color: var(--text-blue); font-size: 18px; margin: 5px; text-shadow: 1px 1px var(--bg-card); text-align: center; flex-shrink: 0; z-index: 5; }
+        #auth-box { flex: 1; display: flex; justify-content: center; align-items: center; background: var(--bg-main); }
+        #main-ui { display: none; flex: 1; width: 100%; max-width: 1400px; margin: 0 auto; padding: 10px; box-sizing: border-box; gap: 10px; overflow: hidden; }
         
-        #auth-box { flex: 1; display: flex; justify-content: center; align-items: center; z-index: 5; }
-        #main-ui { display: none; flex: 1; width: 100%; max-width: 1400px; margin: 0 auto; padding: 10px; box-sizing: border-box; gap: 10px; overflow: hidden; z-index: 5; }
-        
-        .column { display: flex; flex-direction: column; background: var(--bg-col); border: 1px solid var(--border-ui); padding: 8px; height: 100%; box-sizing: border-box; backdrop-filter: blur(2px); }
+        .column { display: flex; flex-direction: column; background: var(--bg-col); border: 1px solid var(--border-ui); padding: 8px; height: 100%; box-sizing: border-box; }
         #col-left { width: 180px; flex-shrink: 0; }
         #col-main { flex: 1; background: var(--bg-card); border: 1px solid var(--border-accent); min-width: 400px; }
         #col-right { width: 250px; flex-shrink: 0; }
@@ -57,20 +47,33 @@
         input, textarea { border: 1px solid var(--border-accent); background: var(--bg-card); color: var(--text-main); padding: 5px; margin: 3px 0; width: 100%; box-sizing: border-box; font-family: Tahoma; font-size: 11px; }
         
         .scroll-area { flex: 1; overflow-y: auto; background: var(--bg-card); border: 1px solid var(--border-accent); padding: 5px; }
-        .post { border-bottom: 2px solid var(--border-ui); padding: 10px 0; }
+        .post { border-bottom: 2px solid var(--bg-main); padding: 10px 0; }
+        .post-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
+        .del-btn { color: #cc0000; border: none; background: none; cursor: pointer; font-size: 9px; font-weight: bold; }
+        .embedded-img { max-width: 100%; max-height: 250px; display: block; margin-top: 5px; border: 1px solid var(--border-ui); cursor: pointer; }
         
         .tab-header { border-bottom: 2px solid var(--border-accent); color: var(--text-blue); padding: 5px; margin-bottom: 10px; font-weight: bold; text-align: center; }
 
+        .msg-container { display: flex; gap: 8px; margin-bottom: 10px; align-items: flex-start; }
+        .msg-avatar { width: 32px; height: 32px; border: 1px solid var(--border-accent); border-radius: 4px; object-fit: cover; }
+        .msg-content { flex: 1; background: var(--bg-col); padding: 6px; border: 1px solid var(--border-ui); border-radius: 2px; }
+        .msg-info { font-size: 9px; margin-bottom: 3px; color: var(--text-blue); display: flex; justify-content: space-between; }
+
+        .like-row { margin-top: 5px; display: flex; align-items: center; gap: 6px; }
+        .like-btn { color: var(--text-blue); background: var(--bg-col); border: 1px solid var(--border-ui); padding: 2px 8px; font-size: 10px; cursor: pointer; }
+        .like-btn.active { background: var(--text-blue); color: white; border-color: var(--text-blue); }
+
         #chat-header { background: var(--border-accent); color: white; padding: 6px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
         
-        .mobile-nav { display: none; background: var(--bg-col); border-top: 1px solid var(--border-ui); flex-shrink: 0; height: 50px; justify-content: space-around; align-items: center; backdrop-filter: blur(5px); }
-        .mobile-nav button { flex: 1; height: 100%; border: none; border-right: 1px solid var(--border-ui); background: transparent; color: var(--text-blue); border-radius: 0; font-size: 8px; }
+        .mobile-nav { display: none; background: var(--border-ui); border-top: 1px solid #808080; flex-shrink: 0; height: 50px; justify-content: space-around; align-items: center; }
+        .mobile-nav button { flex: 1; height: 100%; border: none; border-right: 1px solid #808080; background: transparent; color: var(--text-blue); border-radius: 0; font-size: 7px; padding: 2px; text-transform: uppercase; }
 
         @media (max-width: 768px) {
             #main-ui { flex-direction: column; padding: 0; gap: 0; }
             .column { width: 100% !important; min-width: 0 !important; display: none; border: none; }
             .mobile-nav { display: flex; }
             .column.active-mob { display: flex; }
+            h1 { font-size: 14px; padding: 10px; background: var(--bg-card); margin: 0; border-bottom: 1px solid var(--border-ui); }
         }
 
         #notification-container { position: fixed; top: 10px; right: 10px; z-index: 9999; pointer-events: none; }
@@ -143,12 +146,13 @@
             <div id="chat-window" style="display:none; flex-direction:column; height:100%;">
                 <div id="chat-header">
                     <button onclick="switchTab('col-left')" style="font-size:10px;">НАЗАД</button>
-                    <span id="chat-title">ДИАЛОГ</span>
+                    <span id="chat-title" style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:150px;">ДИАЛОГ</span>
                     <button onclick="loadMessages()" style="font-size:10px;">ОБНОВИТЬ</button>
                 </div>
                 <div id="messages-list" class="scroll-area"></div>
                 <div class="card" style="margin-top:5px; display:flex; gap:5px;">
-                    <input type="text" id="msg-input" placeholder="Введите сообщение...">
+                    <input type="text" id="msg-input" placeholder="Введите сообщение..." onkeyup="if(event.keyCode===13) sendMessage()">
+                    <button onclick="sendImagePrompt()" style="background:var(--bg-col); width:45px;">ФОТО</button>
                     <button onclick="sendMessage()" style="width:50px;">ОТПР.</button>
                 </div>
             </div>
@@ -181,15 +185,19 @@
         const DEFAULT_AVATAR = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRLCFpHxyg6G5c4uQQy6U5SlgJr6qq6P6ot7Q&s";
         let userCache = {};
 
-        // --- ИНИЦИАЛИЗАЦИЯ ---
+        // --- ИНИЦИАЛИЗАЦИЯ И АВТОВХОД ---
         window.onload = async () => {
-            // Загрузка темы
             const savedTheme = localStorage.getItem('theme');
             if (savedTheme) setTheme(savedTheme);
 
-            // ЗАГРУЗКА ФОНА ИЗ КЕША
-            const savedBg = localStorage.getItem('bg_image');
-            if (savedBg) applyBackground(savedBg);
+            // Установка кастомного фона при загрузке
+            const savedBg = localStorage.getItem('custom_bg');
+            if (savedBg) {
+                document.body.style.backgroundImage = `url('${savedBg}')`;
+                document.body.style.backgroundSize = 'cover';
+                document.body.style.backgroundPosition = 'center';
+                document.body.style.backgroundAttachment = 'fixed';
+            }
 
             const sId = localStorage.getItem('saved_user_id');
             const sPass = localStorage.getItem('saved_user_pass');
@@ -204,16 +212,6 @@
             }
         };
 
-        function applyBackground(url) {
-            if (url) {
-                document.body.style.backgroundImage = `url('${url}')`;
-                localStorage.setItem('bg_image', url);
-            } else {
-                document.body.style.backgroundImage = 'none';
-                localStorage.removeItem('bg_image');
-            }
-        }
-
         function startApp(user) {
             document.getElementById('auth-box').style.display = 'none';
             document.getElementById('main-ui').style.display = 'flex';
@@ -223,88 +221,39 @@
             loadGroups(); loadUsers(); viewProfile(myId); initRealtime();
         }
 
-        // Остальные функции Supabase (Auth, Posts, etc.) остаются прежними...
-        // [Здесь твой основной код из прошлого сообщения]
-        // ... я сокращу их для краткости и сфокусируюсь на новых настройках ...
-
         async function handleAuth(mode) {
             const id = document.getElementById('my-id-input').value;
             const pass = document.getElementById('my-pass-input').value;
             const nick = document.getElementById('my-nick-input').value;
             let av = document.getElementById('my-avatar-input').value.trim() || DEFAULT_AVATAR;
-            if (mode === 'reg') await _supabase.from('users').insert([{ id_number: id, password: pass, nickname: nick, avatar_url: av }]);
+
+            if (mode === 'reg') {
+                await _supabase.from('users').insert([{ id_number: id, password: pass, nickname: nick, avatar_url: av }]);
+            }
+
             const { data: user } = await _supabase.from('users').select('*').eq('id_number', id).eq('password', pass).single();
             if (user) {
                 myId = id; myNick = user.nickname;
-                localStorage.setItem('saved_user_id', id); localStorage.setItem('saved_user_pass', pass);
+                localStorage.setItem('saved_user_id', id);
+                localStorage.setItem('saved_user_pass', pass);
                 startApp(user);
-            } else alert("Ошибка!");
+            } else alert("Ошибка входа!");
         }
 
-        function showSettings() {
-            clearMainArea();
-            const wall = document.getElementById('wall-posts');
-            const currentBg = localStorage.getItem('bg_image') || '';
-            
-            wall.innerHTML = `
-                <div class="tab-header">НАСТРОЙКИ</div>
-                <div class="card">
-                    <label>Никнейм:</label><input type="text" id="set-nick" value="${myNick}">
-                    <button onclick="updateProfile()" style="width:100%; margin-top:5px;">ОБНОВИТЬ ПРОФИЛЬ</button>
-                </div>
-                
-                <div class="card">
-                    <strong>ВНЕШНИЙ ВИД:</strong><br><br>
-                    <label>URL фоновой картинки:</label>
-                    <input type="text" id="bg-url-input" placeholder="https://..." value="${currentBg}">
-                    <button onclick="saveNewBg()" style="width:100%; margin-top:5px;">УСТАНОВИТЬ ФОН</button>
-                    <button onclick="saveNewBg(true)" style="width:100%; margin-top:3px; color:red;">СБРОСИТЬ ФОН</button>
-                    
-                    <div style="margin-top:15px; display:flex; gap:5px;">
-                        <button onclick="setTheme('light')" style="flex:1;">СВЕТЛАЯ</button>
-                        <button onclick="setTheme('dark')" style="flex:1;">ТЕМНАЯ</button>
-                    </div>
-                </div>
-
-                <div class="card" style="text-align:center;">
-                    <button onclick="logout()" style="color:red; width:100%;">ВЫЙТИ ИЗ АККАУНТА</button>
-                </div>
-            `;
+        function logout() {
+            localStorage.removeItem('saved_user_id');
+            localStorage.removeItem('saved_user_pass');
+            location.reload();
         }
 
-        function saveNewBg(reset = false) {
-            if (reset) {
-                applyBackground(null);
-                alert("Фон удален!");
-            } else {
-                const url = document.getElementById('bg-url-input').value.trim();
-                if (url) {
-                    applyBackground(url);
-                    alert("Новый фон установлен!");
-                }
-            }
-        }
-
-        // --- ВСЕ ОСТАЛЬНЫЕ ТВОИ ФУНКЦИИ (ЛЕНТА, ЧАТЫ И Т.Д.) ---
-        // Нужно скопировать их из твоего исходного кода сюда
+        // --- ТЕМЫ ---
         function setTheme(theme) {
             if (theme === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
             else document.documentElement.removeAttribute('data-theme');
             localStorage.setItem('theme', theme);
         }
-        function clearMainArea() {
-            switchTab('col-main');
-            document.getElementById('chat-window').style.display = 'none';
-            document.getElementById('profile-screen').style.display = 'flex';
-            document.getElementById('profile-card').style.display = 'none';
-            document.getElementById('wall-input-area').style.display = 'none';
-            document.getElementById('inbox-area').style.display = 'none';
-            document.getElementById('wall-posts').innerHTML = '';
-        }
-        function switchTab(id) {
-            document.querySelectorAll('.column').forEach(c => c.classList.remove('active-mob'));
-            document.getElementById(id).classList.add('active-mob');
-        }
+
+        // --- ПРОФИЛЬ И КОНТЕНТ ---
         async function viewProfile(userId) {
             switchTab('col-main');
             document.getElementById('chat-window').style.display = 'none';
@@ -319,42 +268,216 @@
             document.getElementById('wall-input-area').style.display = isMe ? 'block' : 'none';
             document.getElementById('inbox-area').style.display = isMe ? 'block' : 'none';
             document.getElementById('write-btn').style.display = isMe ? 'none' : 'block';
-            if(!isMe) document.getElementById('write-btn').onclick = () => openPrivate(user.id_number, user.nickname);
-            loadPosts(userId);
+            document.getElementById('follow-btn').style.display = isMe ? 'none' : 'block';
+            document.getElementById('fav-btn').style.display = isMe ? 'none' : 'block';
+            if(!isMe) {
+                document.getElementById('write-btn').onclick = () => openPrivate(user.id_number, user.nickname);
+                checkFollowStatus(userId); checkFavoriteStatus(userId);
+            } else loadInbox();
+            updateFollowCounts(userId); loadPosts(userId);
         }
+
+        async function createPost() {
+            const t = document.getElementById('post-text').value.trim();
+            if(!t) return;
+            await _supabase.from('posts').insert([{ author_id: myId, text: t, likes: 0, liked_by: [] }]);
+            document.getElementById('post-text').value = ""; viewProfile(myId);
+        }
+
         async function loadPosts(userId) {
             const { data: posts } = await _supabase.from('posts').select('*').eq('author_id', userId).order('created_at', { ascending: false });
             const wall = document.getElementById('wall-posts');
             wall.innerHTML = '';
-            if(posts) posts.forEach(p => {
-                const div = document.createElement('div'); div.className = 'post';
-                div.innerHTML = `<div><small>${new Date(p.created_at).toLocaleDateString()}</small></div><div>${p.text}</div>`;
-                wall.appendChild(div);
-            });
+            if(posts) {
+                posts.forEach(p => {
+                    const isLiked = (p.liked_by || []).includes(String(myId));
+                    const div = document.createElement('div');
+                    div.className = 'post';
+                    div.innerHTML = `<div class="post-header"><small style="color:#999;">${new Date(p.created_at).toLocaleDateString()}</small>${p.author_id == myId ? `<button class="del-btn" onclick="deletePost('${p.id}')">[УДАЛИТЬ]</button>` : ''}</div><div style="margin-top:3px;">${parseContent(p.text)}</div><div class="like-row"><button onclick="toggleLike('${p.id}', '${userId}')" class="${isLiked?'like-btn active':'like-btn'}">Нравиться (${p.likes || 0})</button></div>`;
+                    wall.appendChild(div);
+                });
+            }
         }
+
+        // --- СООБЩЕНИЯ ---
+        async function sendMessage() {
+            const inp = document.getElementById('msg-input');
+            if(!inp.value.trim() || !currentChatId) return;
+            await _supabase.from('messages').insert([{ sender_id: myId, chat_id: currentChatId, text: inp.value.trim() }]);
+            inp.value = ""; loadMessages();
+        }
+
+        async function loadMessages() {
+            if(!currentChatId) return;
+            const { data: messages } = await _supabase.from('messages').select('*').eq('chat_id', currentChatId).order('created_at', { ascending: true });
+            const box = document.getElementById('messages-list');
+            const senderIds = [...new Set(messages.map(m => m.sender_id))];
+            const { data: users } = await _supabase.from('users').select('id_number, nickname, avatar_url').in('id_number', senderIds);
+            if(users) users.forEach(u => userCache[u.id_number] = u);
+
+            box.innerHTML = (messages || []).map(m => {
+                const user = userCache[m.sender_id] || { nickname: 'User', avatar_url: DEFAULT_AVATAR };
+                return `<div class="msg-container"><img src="${user.avatar_url}" class="msg-avatar"><div class="msg-content"><div class="msg-info"><b>${user.nickname} (ID: ${m.sender_id})</b><span>${new Date(m.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span></div><div>${parseContent(m.text)}</div></div></div>`;
+            }).join('');
+            box.scrollTop = box.scrollHeight;
+        }
+
+        async function openPrivate(id, nick) {
+            currentChatId = [myId, id].sort().join("_");
+            document.getElementById('profile-screen').style.display = 'none';
+            document.getElementById('chat-window').style.display = 'flex';
+            document.getElementById('chat-title').innerText = nick;
+            switchTab('col-main'); loadMessages();
+        }
+
+        // --- ВСПОМОГАТЕЛЬНЫЕ ---
+        function switchTab(id) {
+            document.querySelectorAll('.column').forEach(c => c.classList.remove('active-mob'));
+            document.getElementById(id).classList.add('active-mob');
+        }
+
+        function parseContent(str) {
+            const urlPattern = /(https?:\/\/[^\s]+)/g;
+            return str.replace(urlPattern, (u) => u.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? `<img src="${u}" class="embedded-img" onclick="window.open('${u}')">` : `<a href="${u}" target="_blank" style="color:var(--text-blue);">${u}</a>`);
+        }
+
+        function showSettings() {
+            clearMainArea();
+            const wall = document.getElementById('wall-posts');
+            const currentBg = localStorage.getItem('custom_bg') || '';
+            wall.innerHTML = `<div class="tab-header">НАСТРОЙКИ</div><div class="card"><label>Никнейм:</label><input type="text" id="set-nick" value="${myNick}"><label>URL аватара:</label><input type="text" id="set-av"><label>URL кастомного фона:</label><input type="text" id="set-bg" value="${currentBg}"><button onclick="updateProfile()" style="width:100%; margin-top:10px;">СОХРАНИТЬ</button></div><div class="card" style="text-align:center;"><strong>ТЕМА:</strong><br><button onclick="setTheme('light')">СВЕТЛАЯ</button><button onclick="setTheme('dark')">ТЕМНАЯ</button><br><br><button onclick="logout()" style="color:red;">ВЫЙТИ ИЗ АККАУНТА</button></div>`;
+        }
+
+        async function updateProfile() {
+            const nick = document.getElementById('set-nick').value;
+            const av = document.getElementById('set-av').value;
+            const bg = document.getElementById('set-bg').value;
+            
+            localStorage.setItem('custom_bg', bg); // Сохраняем кастомный фон
+
+            let up = { nickname: nick };
+            if(av) up.avatar_url = av;
+            await _supabase.from('users').update(up).eq('id_number', myId);
+            location.reload(); // При перезагрузке фон будет применен
+        }
+
+        function clearMainArea() {
+            switchTab('col-main');
+            document.getElementById('chat-window').style.display = 'none';
+            document.getElementById('profile-screen').style.display = 'flex';
+            document.getElementById('profile-card').style.display = 'none';
+            document.getElementById('wall-input-area').style.display = 'none';
+            document.getElementById('inbox-area').style.display = 'none';
+            document.getElementById('wall-posts').innerHTML = '';
+        }
+
         async function loadFeed() {
             clearMainArea();
             const { data: posts } = await _supabase.from('posts').select('*').order('created_at', { ascending: false }).limit(50);
             const wall = document.getElementById('wall-posts');
-            wall.innerHTML = '<div class="tab-header">ЛЕНТА</div>';
-            if(posts) posts.forEach(p => {
-                const div = document.createElement('div'); div.className = 'post';
-                div.innerHTML = `<b onclick="viewProfile('${p.author_id}')" style="cursor:pointer; color:var(--text-blue);">ID ${p.author_id}</b><br>${p.text}`;
-                wall.appendChild(div);
-            });
+            wall.innerHTML = '<div class="tab-header">ЛЕНТА ПОСТОВ</div>';
+            if(posts) {
+                posts.forEach(p => {
+                    const isLiked = (p.liked_by || []).includes(String(myId));
+                    const div = document.createElement('div');
+                    div.className = 'post';
+                    div.innerHTML = `<div class="post-header"><b style="color:var(--text-blue); cursor:pointer;" onclick="viewProfile('${p.author_id}')">ID ${p.author_id}</b><small style="color:#999;">${new Date(p.created_at).toLocaleDateString()}</small></div><div style="margin-top:3px;">${parseContent(p.text)}</div><div class="like-row"><button onclick="toggleLike('${p.id}', null, true)" class="${isLiked?'like-btn active':'like-btn'}">Нравиться (${p.likes || 0})</button></div>`;
+                    wall.appendChild(div);
+                });
+            }
         }
+
+        function initRealtime() {
+            _supabase.channel('any').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, (payload) => {
+                const m = payload.new;
+                if(m.sender_id != myId) {
+                    if(currentChatId === m.chat_id) loadMessages();
+                    else if(m.chat_id.includes(myId) || m.chat_id.startsWith("group_")) showToast(m.sender_id, m.text);
+                }
+            }).subscribe();
+        }
+
+        function showToast(senderId, text) {
+            const container = document.getElementById('notification-container');
+            const t = document.createElement('div'); t.className = 'toast';
+            t.innerHTML = `<b>ID ${senderId}:</b> ${text.substring(0,25)}...`;
+            t.onclick = () => viewProfile(senderId);
+            container.appendChild(t); setTimeout(() => t.remove(), 5000);
+        }
+
         async function loadUsers() {
             const { data } = await _supabase.from('users').select('*');
-            if(data) document.getElementById('users-list').innerHTML = data.map(u => `<div style="padding:4px; border-bottom:1px solid var(--border-ui); cursor:pointer;" onclick="viewProfile('${u.id_number}')">${u.nickname}</div>`).join('');
+            if(data) document.getElementById('users-list').innerHTML = data.map(u => `<div style="padding:4px; border-bottom:1px solid var(--border-ui); cursor:pointer;" onclick="viewProfile('${u.id_number}')"><img src="${u.avatar_url || DEFAULT_AVATAR}" style="width:18px; height:18px; border-radius:50%; vertical-align:middle;"> ${u.nickname}</div>`).join('');
         }
+
         async function loadGroups() {
             const { data } = await _supabase.from('groups').select('*');
-            if(data) document.getElementById('groups-list').innerHTML = data.map(g => `<div class="card" onclick="startGroupChat('${g.id}','${g.name}')"># ${g.name}</div>`).join('');
+            if(data) document.getElementById('groups-list').innerHTML = data.map(g => `<div class="card" style="cursor:pointer; font-size:10px;" onclick="startGroupChat('${g.id}','${g.name}')"># ${g.name}</div>`).join('');
         }
-        function logout() { localStorage.clear(); location.reload(); }
+
+        function startGroupChat(id, name) {
+            currentChatId = "group_" + id;
+            document.getElementById('profile-screen').style.display = 'none';
+            document.getElementById('chat-window').style.display = 'flex';
+            document.getElementById('chat-title').innerText = name;
+            switchTab('col-main'); loadMessages();
+        }
+
+        async function toggleLike(postId, authorId, isFeed = false) {
+            const { data: post } = await _supabase.from('posts').select('likes, liked_by').eq('id', postId).single();
+            if (!post) return;
+            let likedBy = post.liked_by || [];
+            let likesCount = parseInt(post.likes) || 0;
+            const uid = String(myId);
+            if (likedBy.includes(uid)) { likedBy = likedBy.filter(i => i !== uid); likesCount = Math.max(0, likesCount - 1); } 
+            else { likedBy.push(uid); likesCount++; }
+            await _supabase.from('posts').update({ likes: likesCount, liked_by: likedBy }).eq('id', postId);
+            if(isFeed) loadFeed(); else loadPosts(authorId);
+        }
+
+        async function loadInbox() {
+            const { data } = await _supabase.from('messages').select('*').order('created_at', { ascending: false }).limit(40);
+            const list = document.getElementById('inbox-list');
+            if(!data) return;
+            const res = []; const seen = new Set();
+            for(let m of data) {
+                if(m.sender_id == myId) continue;
+                if(m.chat_id.includes(myId) || m.chat_id.startsWith("group_")) {
+                    if(!seen.has(m.chat_id)) { seen.add(m.chat_id); res.push(m); }
+                }
+                if(res.length >= 5) break;
+            }
+            list.innerHTML = res.map(m => `<div style="border-bottom:1px dashed #CCC; padding:3px 0; cursor:pointer;" onclick="openChatById('${m.chat_id}')"><b>${m.chat_id.startsWith('group_')?'ГРУППА':'ID '+m.sender_id}:</b> ${m.text.substring(0,25)}</div>`).join('');
+        }
+
+        async function openChatById(chatId) {
+            if(chatId.startsWith("group_")) {
+                const gid = chatId.replace("group_", "");
+                const {data} = await _supabase.from('groups').select('name').eq('id', gid).single();
+                if(data) startGroupChat(gid, data.name);
+            } else {
+                const tid = chatId.split('_').find(x => x != myId);
+                const {data} = await _supabase.from('users').select('nickname').eq('id_number', tid).single();
+                if(data) openPrivate(tid, data.nickname);
+            }
+        }
+
+        function showAbout() {
+            clearMainArea();
+            document.getElementById('wall-posts').innerHTML = `<div class="tab-header">О ПРОЕКТЕ</div><div class="card" style="line-height:1.6; text-align:center; padding:30px;"><strong style="font-size:16px; color:var(--text-blue);">Ласточка.ru</strong><br>Все права защищены!<br><br>Ласточка.ru ето мессенджер где вашы данные будут защищены!.</div>`;
+        }
+        
         function showWall() { viewProfile(myId); }
-        function showAbout() { clearMainArea(); document.getElementById('wall-posts').innerHTML = '<div class="card">Ласточка.ru - мессенджер с защитой данных.</div>'; }
-        function initRealtime() { /* Здесь твоя подписка Supabase */ }
+        function goToId() { const i = document.getElementById('target-id-input').value; if(i) viewProfile(i); }
+        function createGroup() { const n = prompt("Название группы:"); if(n) _supabase.from('groups').insert([{name:n}]).then(loadGroups); }
+        function sendImagePrompt() { const url = prompt("Вставь URL картинки:"); if(url) { document.getElementById('msg-input').value = url; sendMessage(); } }
+        async function deletePost(postId) { if(!confirm("Удалить этот пост?")) return; await _supabase.from('posts').delete().eq('id', postId).eq('author_id', myId); viewProfile(myId); }
+        async function checkFollowStatus(id) { const { data } = await _supabase.from('follows').select('*').eq('follower_id', myId).eq('following_id', id).single(); const btn = document.getElementById('follow-btn'); btn.innerText = data ? "ОТПИСАТЬСЯ" : "ПОДПИСАТЬСЯ"; btn.onclick = () => toggleFollow(id, !!data); }
+        async function toggleFollow(id, isF) { if(isF) await _supabase.from('follows').delete().eq('follower_id', myId).eq('following_id', id); else await _supabase.from('follows').insert([{follower_id:myId, following_id:id}]); viewProfile(id); }
+        async function updateFollowCounts(id) { const { count: f1 } = await _supabase.from('follows').select('*', { count: 'exact' }).eq('following_id', id); const { count: f2 } = await _supabase.from('follows').select('*', { count: 'exact' }).eq('follower_id', id); document.getElementById('count-followers').innerText = f1 || 0; document.getElementById('count-following').innerText = f2 || 0; }
+        async function checkFavoriteStatus(id) { const btn = document.getElementById('fav-btn'); const { data } = await _supabase.from('favorites').select('*').eq('user_id', myId).eq('favorite_id', id).single(); btn.innerText = data ? "УДАЛИТЬ ИЗ ИЗБРАННОГО" : "В ИЗБРАННОЕ"; btn.onclick = () => toggleFavorite(id, !!data); }
+        async function toggleFavorite(id, isFav) { if(isFav) await _supabase.from('favorites').delete().eq('user_id', myId).eq('favorite_id', id); else await _supabase.from('favorites').insert([{user_id: myId, favorite_id: id}]); checkFavoriteStatus(id); }
+        async function loadFavoritesTab() { clearMainArea(); const wall = document.getElementById('wall-posts'); wall.innerHTML = '<div class="tab-header">ИЗБРАННЫЕ</div>'; const { data: favs } = await _supabase.from('favorites').select('favorite_id').eq('user_id', myId); if(!favs || favs.length === 0) { wall.innerHTML += '<div style="padding:20px; text-align:center; color:#999;">Нет избранных.</div>'; return; } const { data: users } = await _supabase.from('users').select('*').in('id_number', favs.map(f => f.favorite_id)); if(users) { users.forEach(u => { const div = document.createElement('div'); div.className = 'card'; div.style.display = 'flex'; div.style.alignItems = 'center'; div.style.gap = '10px'; div.style.cursor = 'pointer'; div.onclick = () => viewProfile(u.id_number); div.innerHTML = `<img src="${u.avatar_url || DEFAULT_AVATAR}" style="width:30px; height:30px; border-radius:50%; object-fit:cover;"><b style="color:var(--text-blue);">${u.nickname}</b> <small>(ID: ${u.id_number})</small>`; wall.appendChild(div); }); } }
     </script>
 </body>
 </html>
