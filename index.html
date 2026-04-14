@@ -83,6 +83,7 @@
             border: 1px solid var(--border-ui);
         }
         
+        /* СТИЛИ КНОПОК HOLO */
         button { 
             background: var(--btn-bg); 
             border: 1px solid var(--border-accent); 
@@ -98,6 +99,7 @@
         button:hover { background: var(--btn-hover); border-color: var(--holo-blue); }
         button:active { background: var(--holo-blue); color: #FFF; border-color: var(--holo-blue); }
         
+        /* СТИЛИ ВВОДА HOLO (Акцент на нижнюю линию) */
         input, textarea { 
             border: none;
             border-bottom: 1px solid var(--border-accent); 
@@ -123,6 +125,7 @@
         
         .embedded-img { max-width: 100%; max-height: 300px; display: block; margin-top: 10px; border: 1px solid var(--border-ui); cursor: pointer; }
         
+        /* ЗАГОЛОВКИ ТАБОВ HOLO */
         .tab-header { 
             border-bottom: 2px solid var(--holo-blue); 
             color: var(--holo-blue); 
@@ -161,6 +164,7 @@
         .mobile-nav button { flex: 1; height: 100%; border: none; background: transparent; color: var(--text-sub); font-size: 11px; padding: 5px; }
         .mobile-nav button:hover, .mobile-nav button:active { color: var(--holo-blue); border-bottom: 3px solid var(--holo-blue); background: transparent; }
 
+        /* === КЛАССЫ РАЗДЕЛЕНИЯ ПК И МОБИЛЬНОЙ ВЕРСИИ === */
         .desktop-only { display: block; }
         .mobile-only { display: none; }
 
@@ -170,6 +174,7 @@
             .mobile-nav { display: flex; }
             .column.active-mob { display: flex; }
             h1 { font-size: 18px; padding: 15px; }
+            
             .desktop-only { display: none !important; }
             .mobile-only { display: block !important; }
         }
@@ -177,6 +182,7 @@
         #notification-container { position: fixed; bottom: 70px; right: 10px; z-index: 9999; pointer-events: none; }
         .toast { background: #323232; color: #FFFFFF; padding: 12px 16px; border-radius: 2px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); margin-top: 10px; font-size: 14px; pointer-events: auto; cursor: pointer; border-left: 4px solid var(--holo-blue); }
         
+        /* Кастомные элементы скроллбара под Holo */
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: var(--bg-col); }
         ::-webkit-scrollbar-thumb { background: var(--border-accent); }
@@ -267,13 +273,10 @@
                     <button onclick="loadMessages()" style="border:none; padding:5px;">ОБНОВИТЬ</button>
                 </div>
                 <div id="messages-list" class="scroll-area"></div>
-                <div id="chat-input-panel" style="padding: 10px; border-top: 1px solid var(--border-ui); display:flex; gap:10px; background: var(--bg-card);">
+                <div style="padding: 10px; border-top: 1px solid var(--border-ui); display:flex; gap:10px; background: var(--bg-card);">
                     <button onclick="sendImagePrompt()" style="width:50px; border-style: dashed;">IMG</button>
                     <input type="text" id="msg-input" placeholder="Введите сообщение..." onkeyup="if(event.keyCode===13) sendMessage()" style="margin:0;">
                     <button onclick="sendMessage()" style="width:80px; background: var(--holo-blue); color: white; border: none;">ОТПР.</button>
-                </div>
-                <div id="read-only-notice" style="display:none; padding:15px; text-align:center; color:var(--text-sub); background:var(--bg-col);">
-                    Это паблик чат. Только автор может писать здесь.
                 </div>
             </div>
         </div>
@@ -316,16 +319,29 @@
         const DEFAULT_AVATAR = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRLCFpHxyg6G5c4uQQy6U5SlgJr6qq6P6ot7Q&s";
         let userCache = {};
 
+        // --- ИНИЦИАЛИЗАЦИЯ И АВТОВХОД ---
         window.onload = async () => {
             const savedTheme = localStorage.getItem('theme');
             if (savedTheme) setTheme(savedTheme);
+
             const savedBg = localStorage.getItem('custom_bg');
-            if (savedBg) { document.body.style.backgroundImage = `url('${savedBg}')`; document.body.style.backgroundSize = 'cover'; document.body.style.backgroundAttachment = 'fixed'; }
+            if (savedBg) {
+                document.body.style.backgroundImage = `url('${savedBg}')`;
+                document.body.style.backgroundSize = 'cover';
+                document.body.style.backgroundPosition = 'center';
+                document.body.style.backgroundAttachment = 'fixed';
+            }
+
             const sId = localStorage.getItem('saved_user_id');
             const sPass = localStorage.getItem('saved_user_pass');
+
             if (sId && sPass) {
                 const { data: user } = await _supabase.from('users').select('*').eq('id_number', sId).eq('password', sPass).single();
-                if (user) { myId = sId; myNick = user.nickname; startApp(user); }
+                if (user) {
+                    myId = sId;
+                    myNick = user.nickname;
+                    startApp(user);
+                }
             }
         };
 
@@ -343,13 +359,34 @@
             const pass = document.getElementById('my-pass-input').value;
             const nick = document.getElementById('my-nick-input').value;
             let av = document.getElementById('my-avatar-input').value.trim() || DEFAULT_AVATAR;
-            if (mode === 'reg') await _supabase.from('users').insert([{ id_number: id, password: pass, nickname: nick, avatar_url: av }]);
+
+            if (mode === 'reg') {
+                await _supabase.from('users').insert([{ id_number: id, password: pass, nickname: nick, avatar_url: av }]);
+            }
+
             const { data: user } = await _supabase.from('users').select('*').eq('id_number', id).eq('password', pass).single();
-            if (user) { myId = id; myNick = user.nickname; localStorage.setItem('saved_user_id', id); localStorage.setItem('saved_user_pass', pass); startApp(user); } else alert("Ошибка!");
+            if (user) {
+                myId = id; myNick = user.nickname;
+                localStorage.setItem('saved_user_id', id);
+                localStorage.setItem('saved_user_pass', pass);
+                startApp(user);
+            } else alert("Ошибка входа!");
         }
 
-        function setTheme(theme) { theme === 'dark' ? document.documentElement.setAttribute('data-theme', 'dark') : document.documentElement.removeAttribute('data-theme'); localStorage.setItem('theme', theme); }
+        function logout() {
+            localStorage.removeItem('saved_user_id');
+            localStorage.removeItem('saved_user_pass');
+            location.reload();
+        }
 
+        // --- ТЕМЫ ---
+        function setTheme(theme) {
+            if (theme === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+            else document.documentElement.removeAttribute('data-theme');
+            localStorage.setItem('theme', theme);
+        }
+
+        // --- ПРОФИЛЬ И КОНТЕНТ ---
         async function viewProfile(userId) {
             switchTab('col-main');
             document.getElementById('chat-window').style.display = 'none';
@@ -366,7 +403,10 @@
             document.getElementById('write-btn').style.display = isMe ? 'none' : 'block';
             document.getElementById('follow-btn').style.display = isMe ? 'none' : 'block';
             document.getElementById('fav-btn').style.display = isMe ? 'none' : 'block';
-            if(!isMe) { document.getElementById('write-btn').onclick = () => openPrivate(user.id_number, user.nickname); checkFollowStatus(userId); checkFavoriteStatus(userId); } else loadInbox();
+            if(!isMe) {
+                document.getElementById('write-btn').onclick = () => openPrivate(user.id_number, user.nickname);
+                checkFollowStatus(userId); checkFavoriteStatus(userId);
+            } else loadInbox();
             updateFollowCounts(userId); loadPosts(userId);
         }
 
@@ -384,13 +424,15 @@
             if(posts) {
                 posts.forEach(p => {
                     const isLiked = (p.liked_by || []).includes(String(myId));
-                    const div = document.createElement('div'); div.className = 'post';
+                    const div = document.createElement('div');
+                    div.className = 'post';
                     div.innerHTML = `<div class="post-header"><small style="color:var(--text-sub);">${new Date(p.created_at).toLocaleDateString()}</small>${p.author_id == myId ? `<button class="del-btn" onclick="deletePost('${p.id}')">УДАЛИТЬ</button>` : ''}</div><div style="margin-top:5px; font-size:15px; line-height: 1.4;">${parseContent(p.text)}</div><div class="like-row"><button onclick="toggleLike('${p.id}', '${userId}')" class="${isLiked?'like-btn active':'like-btn'}">Нравиться (${p.likes || 0})</button></div>`;
                     wall.appendChild(div);
                 });
             }
         }
 
+        // --- СООБЩЕНИЯ ---
         async function sendMessage() {
             const inp = document.getElementById('msg-input');
             if(!inp.value.trim() || !currentChatId) return;
@@ -405,6 +447,7 @@
             const senderIds = [...new Set(messages.map(m => m.sender_id))];
             const { data: users } = await _supabase.from('users').select('id_number, nickname, avatar_url').in('id_number', senderIds);
             if(users) users.forEach(u => userCache[u.id_number] = u);
+
             box.innerHTML = (messages || []).map(m => {
                 const user = userCache[m.sender_id] || { nickname: 'User', avatar_url: DEFAULT_AVATAR };
                 return `<div class="msg-container"><img src="${user.avatar_url}" class="msg-avatar"><div class="msg-content"><div class="msg-info"><b>${user.nickname} (ID: ${m.sender_id})</b><span>${new Date(m.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span></div><div style="font-size:14px;">${parseContent(m.text)}</div></div></div>`;
@@ -417,9 +460,13 @@
             document.getElementById('profile-screen').style.display = 'none';
             document.getElementById('chat-window').style.display = 'flex';
             document.getElementById('chat-title').innerText = nick;
-            document.getElementById('chat-input-panel').style.display = 'flex';
-            document.getElementById('read-only-notice').style.display = 'none';
             switchTab('col-main'); loadMessages();
+        }
+
+        // --- ВСПОМОГАТЕЛЬНЫЕ ---
+        function switchTab(id) {
+            document.querySelectorAll('.column').forEach(c => c.classList.remove('active-mob'));
+            document.getElementById(id).classList.add('active-mob');
         }
 
         function parseContent(str) {
@@ -430,96 +477,133 @@
         function showSettings() {
             clearMainArea();
             const wall = document.getElementById('wall-posts');
-            wall.innerHTML = `<div class="tab-header">НАСТРОЙКИ</div><div class="card"><label style="color:var(--holo-blue); font-size:12px;">НИКНЕЙМ</label><input type="text" id="set-nick" value="${myNick}"><label style="color:var(--holo-blue); font-size:12px;">URL ФОНА</label><input type="text" id="set-bg" value="${localStorage.getItem('custom_bg')||''}"><button onclick="updateProfile()" style="margin-top:15px;">СОХРАНИТЬ</button></div><div class="card" style="margin-top: 20px;"><strong>ТЕМЫ:</strong><div style="display:flex; gap:10px; margin-top:10px;"><button onclick="setTheme('light')" style="flex:1;">HOLO LIGHT</button><button onclick="setTheme('dark')" style="flex:1;">HOLO DARK</button></div><br><button onclick="logout()" style="color:#ff4444; width:100%;">ВЫЙТИ</button></div>`;
+            const currentBg = localStorage.getItem('custom_bg') || '';
+            wall.innerHTML = `<div class="tab-header">НАСТРОЙКИ</div><div class="card"><label style="color:var(--holo-blue); font-size:12px;">НИКНЕЙМ</label><input type="text" id="set-nick" value="${myNick}"><label style="color:var(--holo-blue); font-size:12px;">URL АВАТАРА</label><input type="text" id="set-av"><label style="color:var(--holo-blue); font-size:12px;">URL КАСТОМНОГО ФОНА</label><input type="text" id="set-bg" value="${currentBg}"><button onclick="updateProfile()" style="margin-top:15px;">СОХРАНИТЬ ИЗМЕНЕНИЯ</button></div><div class="card" style="margin-top: 20px;"><strong>ОФОРМЛЕНИЕ (HOLO):</strong><div style="display:flex; gap:10px; margin-top:10px;"><button onclick="setTheme('light')" style="flex:1;">HOLO LIGHT</button><button onclick="setTheme('dark')" style="flex:1;">HOLO DARK</button></div><br><br><button onclick="logout()" style="color:#ff4444; border-color:#ff4444; width:100%;">ВЫЙТИ ИЗ АККАУНТА</button></div>`;
         }
 
         async function updateProfile() {
             const nick = document.getElementById('set-nick').value;
+            const av = document.getElementById('set-av').value;
             const bg = document.getElementById('set-bg').value;
+            
             localStorage.setItem('custom_bg', bg);
-            await _supabase.from('users').update({ nickname: nick }).eq('id_number', myId);
+
+            let up = { nickname: nick };
+            if(av) up.avatar_url = av;
+            await _supabase.from('users').update(up).eq('id_number', myId);
             location.reload(); 
         }
 
-        function clearMainArea() { switchTab('col-main'); document.getElementById('chat-window').style.display = 'none'; document.getElementById('profile-screen').style.display = 'flex'; document.getElementById('profile-card').style.display = 'none'; document.getElementById('wall-input-area').style.display = 'none'; document.getElementById('inbox-area').style.display = 'none'; document.getElementById('wall-posts').innerHTML = ''; }
+        function clearMainArea() {
+            switchTab('col-main');
+            document.getElementById('chat-window').style.display = 'none';
+            document.getElementById('profile-screen').style.display = 'flex';
+            document.getElementById('profile-card').style.display = 'none';
+            document.getElementById('wall-input-area').style.display = 'none';
+            document.getElementById('inbox-area').style.display = 'none';
+            document.getElementById('wall-posts').innerHTML = '';
+        }
 
         async function loadFeed() {
-            clearMainArea(); const { data: posts } = await _supabase.from('posts').select('*').order('created_at', { ascending: false }).limit(50);
-            const wall = document.getElementById('wall-posts'); wall.innerHTML = '<div class="tab-header">ЛЕНТА</div>';
-            if(posts) posts.forEach(p => {
-                const isLiked = (p.liked_by || []).includes(String(myId));
-                const div = document.createElement('div'); div.className = 'post';
-                div.innerHTML = `<div class="post-header"><b style="cursor:pointer;" onclick="viewProfile('${p.author_id}')">ID ${p.author_id}</b><small>${new Date(p.created_at).toLocaleDateString()}</small></div><div style="margin-top:5px;">${parseContent(p.text)}</div><div class="like-row"><button onclick="toggleLike('${p.id}', null, true)" class="${isLiked?'like-btn active':'like-btn'}">Нравиться (${p.likes || 0})</button></div>`;
-                wall.appendChild(div);
-            });
+            clearMainArea();
+            const { data: posts } = await _supabase.from('posts').select('*').order('created_at', { ascending: false }).limit(50);
+            const wall = document.getElementById('wall-posts');
+            wall.innerHTML = '<div class="tab-header">ЛЕНТА</div>';
+            if(posts) {
+                posts.forEach(p => {
+                    const isLiked = (p.liked_by || []).includes(String(myId));
+                    const div = document.createElement('div');
+                    div.className = 'post';
+                    div.innerHTML = `<div class="post-header"><b style="color:var(--text-main); font-size:16px; font-weight:300; cursor:pointer;" onclick="viewProfile('${p.author_id}')">ID ${p.author_id}</b><small style="color:var(--text-sub);">${new Date(p.created_at).toLocaleDateString()}</small></div><div style="margin-top:5px; font-size:15px; line-height: 1.4;">${parseContent(p.text)}</div><div class="like-row"><button onclick="toggleLike('${p.id}', null, true)" class="${isLiked?'like-btn active':'like-btn'}">Нравиться (${p.likes || 0})</button></div>`;
+                    wall.appendChild(div);
+                });
+            }
         }
 
         function initRealtime() {
             _supabase.channel('any').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, (payload) => {
-                if(payload.new.sender_id != myId) { if(currentChatId === payload.new.chat_id) loadMessages(); else if(payload.new.chat_id.includes(myId) || payload.new.chat_id.startsWith("group_")) showToast(payload.new.sender_id, payload.new.text); }
+                const m = payload.new;
+                if(m.sender_id != myId) {
+                    if(currentChatId === m.chat_id) loadMessages();
+                    else if(m.chat_id.includes(myId) || m.chat_id.startsWith("group_")) showToast(m.sender_id, m.text);
+                }
             }).subscribe();
         }
 
-        function showToast(s, t) { const container = document.getElementById('notification-container'); const el = document.createElement('div'); el.className = 'toast'; el.innerHTML = `<b>ID ${s}:</b> ${t.substring(0,30)}...`; el.onclick = () => viewProfile(s); container.appendChild(el); setTimeout(() => el.remove(), 5000); }
+        function showToast(senderId, text) {
+            const container = document.getElementById('notification-container');
+            const t = document.createElement('div'); t.className = 'toast';
+            t.innerHTML = `<b style="color:var(--holo-blue);">ID ${senderId}:</b> ${text.substring(0,30)}...`;
+            t.onclick = () => viewProfile(senderId);
+            container.appendChild(t); setTimeout(() => t.remove(), 5000);
+        }
 
-        async function loadUsers() { const { data } = await _supabase.from('users').select('*'); if(data) document.getElementById('users-list').innerHTML = data.map(u => `<div style="padding:10px 5px; border-bottom:1px solid var(--border-ui); cursor:pointer;" onclick="viewProfile('${u.id_number}')">${u.nickname}</div>`).join(''); }
+        async function loadUsers() {
+            const { data } = await _supabase.from('users').select('*');
+            if(data) document.getElementById('users-list').innerHTML = data.map(u => `<div style="padding:10px 5px; border-bottom:1px solid var(--border-ui); cursor:pointer; display:flex; align-items:center; gap:10px;" onclick="viewProfile('${u.id_number}')"><img src="${u.avatar_url || DEFAULT_AVATAR}" style="width:24px; height:24px; border-radius:0; border:1px solid var(--border-accent);"> ${u.nickname}</div>`).join('');
+        }
 
+        // ОБНОВЛЕНО: загрузка и фильтрация Групп и Паблик чатов
         async function loadGroups() {
             const { data } = await _supabase.from('groups').select('*');
             if(data) {
+                // Выделяем Паблик чаты (маркер [PUB] в начале имени)
                 const publics = data.filter(g => g.name.startsWith('[PUB] '));
                 const normals = data.filter(g => !g.name.startsWith('[PUB] '));
-                const htmlPublics = publics.map(g => `<div style="padding:8px 5px; border-bottom:1px solid var(--border-ui); cursor:pointer;" onclick="startGroupChat('${g.id}','${g.name}','${g.creator_id}')"><span style="color:var(--holo-blue);">🌍</span> ${g.name.replace('[PUB] ', '')}</div>`).join('');
+
+                const htmlPublics = publics.map(g => `<div style="padding:8px 5px; border-bottom:1px solid var(--border-ui); cursor:pointer; font-size:13px;" onclick="startGroupChat('${g.id}','${g.name.replace('[PUB] ', '')}')"><span style="color:var(--holo-blue);">🌍</span> ${g.name.replace('[PUB] ', '')}</div>`).join('');
                 document.querySelectorAll('.public-chats-list-class').forEach(el => el.innerHTML = htmlPublics);
-                const htmlNormals = normals.map(g => `<div style="padding:8px 5px; border-bottom:1px solid var(--border-ui); cursor:pointer;" onclick="startGroupChat('${g.id}','${g.name}','${g.creator_id}')"><span style="color:var(--holo-blue);">#</span> ${g.name}</div>`).join('');
+
+                const htmlNormals = normals.map(g => `<div style="padding:8px 5px; border-bottom:1px solid var(--border-ui); cursor:pointer; font-size:13px;" onclick="startGroupChat('${g.id}','${g.name}')"><span style="color:var(--holo-blue);">#</span> ${g.name}</div>`).join('');
                 document.querySelectorAll('.groups-list-class').forEach(el => el.innerHTML = htmlNormals);
             }
         }
 
-        // ОБНОВЛЕНО: Добавление creator_id
-        function createPublicChat() { const n = prompt("Название паблик чата:"); if(n) _supabase.from('groups').insert([{name: '[PUB] ' + n, creator_id: myId}]).then(loadGroups); }
-        function createGroup() { const n = prompt("Название группы:"); if(n) _supabase.from('groups').insert([{name:n, creator_id: myId}]).then(loadGroups); }
+        function createPublicChat() { 
+            const n = prompt("Название паблик чата:"); 
+            if(n) _supabase.from('groups').insert([{name: '[PUB] ' + n}]).then(loadGroups); 
+        }
 
-        // ОБНОВЛЕНО: Логика "Только для чтения"
-        function startGroupChat(id, name, creatorId) {
+        function startGroupChat(id, name) {
             currentChatId = "group_" + id;
             document.getElementById('profile-screen').style.display = 'none';
             document.getElementById('chat-window').style.display = 'flex';
-            document.getElementById('chat-title').innerText = name.replace('[PUB] ', '');
-            
-            // Если это паблик чат и ты не создатель — скрываем ввод
-            if (name.startsWith('[PUB] ') && creatorId !== String(myId)) {
-                document.getElementById('chat-input-panel').style.display = 'none';
-                document.getElementById('read-only-notice').style.display = 'block';
-            } else {
-                document.getElementById('chat-input-panel').style.display = 'flex';
-                document.getElementById('read-only-notice').style.display = 'none';
-            }
-
+            document.getElementById('chat-title').innerText = name;
             switchTab('col-main'); loadMessages();
         }
 
-        async function toggleLike(pId, aId, isF = false) {
-            const { data: p } = await _supabase.from('posts').select('likes, liked_by').eq('id', pId).single();
-            if (!p) return;
-            let lb = p.liked_by || []; let l = p.likes || 0;
-            lb.includes(String(myId)) ? (lb = lb.filter(i => i !== String(myId)), l--) : (lb.push(String(myId)), l++);
-            await _supabase.from('posts').update({ likes: l, liked_by: lb }).eq('id', pId);
-            isF ? loadFeed() : loadPosts(aId);
+        async function toggleLike(postId, authorId, isFeed = false) {
+            const { data: post } = await _supabase.from('posts').select('likes, liked_by').eq('id', postId).single();
+            if (!post) return;
+            let likedBy = post.liked_by || [];
+            let likesCount = parseInt(post.likes) || 0;
+            const uid = String(myId);
+            if (likedBy.includes(uid)) { likedBy = likedBy.filter(i => i !== uid); likesCount = Math.max(0, likesCount - 1); } 
+            else { likedBy.push(uid); likesCount++; }
+            await _supabase.from('posts').update({ likes: likesCount, liked_by: likedBy }).eq('id', postId);
+            if(isFeed) loadFeed(); else loadPosts(authorId);
         }
 
         async function loadInbox() {
             const { data } = await _supabase.from('messages').select('*').order('created_at', { ascending: false }).limit(40);
-            if(!data) return; const res = []; const seen = new Set();
-            for(let m of data) { if(m.sender_id != myId && (m.chat_id.includes(myId) || m.chat_id.startsWith("group_")) && !seen.has(m.chat_id)) { seen.add(m.chat_id); res.push(m); if(res.length>=5) break; } }
-            document.getElementById('inbox-list').innerHTML = res.map(m => `<div style="border-bottom:1px solid var(--border-ui); padding:8px 0; cursor:pointer;" onclick="openChatById('${m.chat_id}')"><b>${m.chat_id.startsWith('group_')?'ГРУППА':'ID '+m.sender_id}:</b> ${m.text.substring(0,35)}</div>`).join('');
+            const list = document.getElementById('inbox-list');
+            if(!data) return;
+            const res = []; const seen = new Set();
+            for(let m of data) {
+                if(m.sender_id == myId) continue;
+                if(m.chat_id.includes(myId) || m.chat_id.startsWith("group_")) {
+                    if(!seen.has(m.chat_id)) { seen.add(m.chat_id); res.push(m); }
+                }
+                if(res.length >= 5) break;
+            }
+            list.innerHTML = res.map(m => `<div style="border-bottom:1px solid var(--border-ui); padding:8px 0; cursor:pointer; font-size:13px;" onclick="openChatById('${m.chat_id}')"><b>${m.chat_id.startsWith('group_')?'ГРУППА':'ID '+m.sender_id}:</b> <span style="color:var(--text-sub);">${m.text.substring(0,35)}</span></div>`).join('');
         }
 
         async function openChatById(chatId) {
             if(chatId.startsWith("group_")) {
                 const gid = chatId.replace("group_", "");
-                const {data} = await _supabase.from('groups').select('*').eq('id', gid).single();
-                if(data) startGroupChat(gid, data.name, data.creator_id);
+                const {data} = await _supabase.from('groups').select('name').eq('id', gid).single();
+                if(data) startGroupChat(gid, data.name);
             } else {
                 const tid = chatId.split('_').find(x => x != myId);
                 const {data} = await _supabase.from('users').select('nickname').eq('id_number', tid).single();
@@ -527,18 +611,22 @@
             }
         }
 
-        function showAbout() { clearMainArea(); document.getElementById('wall-posts').innerHTML = `<div class="tab-header">О ПРОЕКТЕ</div><div style="padding:30px;"><strong>Ласточка.ru</strong><br>Защищенный мессенджер.</div>`; }
+        function showAbout() {
+            clearMainArea();
+            document.getElementById('wall-posts').innerHTML = `<div class="tab-header">О ПРОЕКТЕ</div><div style="line-height:1.6; padding:30px;"><strong style="font-size:24px; font-weight:300; color:var(--text-main);">Ласточка.ru</strong><br><span style="color:var(--text-sub);">Все права защищены!</span><br><br>Ласточка.ru это мессенджер где ваши данные будут защищены.</div>`;
+        }
+        
         function showWall() { viewProfile(myId); }
         function goToId() { const i = document.getElementById('target-id-input').value; if(i) viewProfile(i); }
-        function logout() { localStorage.clear(); location.reload(); }
-        function sendImagePrompt() { const url = prompt("URL картинки:"); if(url) { document.getElementById('msg-input').value = url; sendMessage(); } }
-        async function deletePost(pId) { if(confirm("Удалить?")) { await _supabase.from('posts').delete().eq('id', pId); viewProfile(myId); } }
+        function createGroup() { const n = prompt("Название группы:"); if(n) _supabase.from('groups').insert([{name:n}]).then(loadGroups); }
+        function sendImagePrompt() { const url = prompt("Вставь URL картинки:"); if(url) { document.getElementById('msg-input').value = url; sendMessage(); } }
+        async function deletePost(postId) { if(!confirm("Удалить этот пост?")) return; await _supabase.from('posts').delete().eq('id', postId).eq('author_id', myId); viewProfile(myId); }
         async function checkFollowStatus(id) { const { data } = await _supabase.from('follows').select('*').eq('follower_id', myId).eq('following_id', id).single(); const btn = document.getElementById('follow-btn'); btn.innerText = data ? "ОТПИСАТЬСЯ" : "ПОДПИСАТЬСЯ"; btn.onclick = () => toggleFollow(id, !!data); }
-        async function toggleFollow(id, isF) { isF ? await _supabase.from('follows').delete().eq('follower_id', myId).eq('following_id', id) : await _supabase.from('follows').insert([{follower_id:myId, following_id:id}]); viewProfile(id); }
+        async function toggleFollow(id, isF) { if(isF) await _supabase.from('follows').delete().eq('follower_id', myId).eq('following_id', id); else await _supabase.from('follows').insert([{follower_id:myId, following_id:id}]); viewProfile(id); }
         async function updateFollowCounts(id) { const { count: f1 } = await _supabase.from('follows').select('*', { count: 'exact' }).eq('following_id', id); const { count: f2 } = await _supabase.from('follows').select('*', { count: 'exact' }).eq('follower_id', id); document.getElementById('count-followers').innerText = f1 || 0; document.getElementById('count-following').innerText = f2 || 0; }
-        async function checkFavoriteStatus(id) { const btn = document.getElementById('fav-btn'); const { data } = await _supabase.from('favorites').select('*').eq('user_id', myId).eq('favorite_id', id).single(); btn.innerText = data ? "ИЗ ИЗБРАННОГО" : "В ИЗБРАННОЕ"; btn.onclick = () => toggleFavorite(id, !!data); }
-        async function toggleFavorite(id, isFav) { isFav ? await _supabase.from('favorites').delete().eq('user_id', myId).eq('favorite_id', id) : await _supabase.from('favorites').insert([{user_id: myId, favorite_id: id}]); checkFavoriteStatus(id); }
-        async function loadFavoritesTab() { clearMainArea(); const { data: favs } = await _supabase.from('favorites').select('favorite_id').eq('user_id', myId); if(!favs || favs.length === 0) return; const { data: users } = await _supabase.from('users').select('*').in('id_number', favs.map(f => f.favorite_id)); if(users) users.forEach(u => { const d = document.createElement('div'); d.className='post'; d.innerText=u.nickname; d.onclick=()=>viewProfile(u.id_number); document.getElementById('wall-posts').appendChild(d); }); }
+        async function checkFavoriteStatus(id) { const btn = document.getElementById('fav-btn'); const { data } = await _supabase.from('favorites').select('*').eq('user_id', myId).eq('favorite_id', id).single(); btn.innerText = data ? "УДАЛИТЬ ИЗ ИЗБРАННОГО" : "В ИЗБРАННОЕ"; btn.onclick = () => toggleFavorite(id, !!data); }
+        async function toggleFavorite(id, isFav) { if(isFav) await _supabase.from('favorites').delete().eq('user_id', myId).eq('favorite_id', id); else await _supabase.from('favorites').insert([{user_id: myId, favorite_id: id}]); checkFavoriteStatus(id); }
+        async function loadFavoritesTab() { clearMainArea(); const wall = document.getElementById('wall-posts'); wall.innerHTML = '<div class="tab-header">ИЗБРАННЫЕ</div>'; const { data: favs } = await _supabase.from('favorites').select('favorite_id').eq('user_id', myId); if(!favs || favs.length === 0) { wall.innerHTML += '<div style="padding:20px; color:var(--text-sub);\">Нет избранных.</div>'; return; } const { data: users } = await _supabase.from('users').select('*').in('id_number', favs.map(f => f.favorite_id)); if(users) { users.forEach(u => { const div = document.createElement('div'); div.style.display = 'flex'; div.style.alignItems = 'center'; div.style.gap = '15px'; div.style.cursor = 'pointer'; div.style.padding = '10px 0'; div.style.borderBottom = '1px solid var(--border-ui)'; div.onclick = () => viewProfile(u.id_number); div.innerHTML = `<img src="${u.avatar_url || DEFAULT_AVATAR}" style="width:40px; height:40px; border-radius:0; object-fit:cover; border:1px solid var(--border-accent);"><b style="font-size:16px; font-weight:300;">${u.nickname}</b> <small style="color:var(--text-sub);">(ID: ${u.id_number})</small>`; wall.appendChild(div); }); } }
     </script>
 </body>
 </html>
