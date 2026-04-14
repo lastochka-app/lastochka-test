@@ -99,7 +99,7 @@
         button:hover { background: var(--btn-hover); border-color: var(--holo-blue); }
         button:active { background: var(--holo-blue); color: #FFF; border-color: var(--holo-blue); }
         
-        /* СТИЛИ ВВОДА HOLO */
+        /* СТИЛИ ВВОДА HOLO (Акцент на нижнюю линию) */
         input, textarea { 
             border: none;
             border-bottom: 1px solid var(--border-accent); 
@@ -220,8 +220,12 @@
             <button onclick="showAbout()" style="width:100%; margin-bottom:20px; text-align: left;">О НАС</button>
 
             <div class="desktop-only" style="margin-top: 10px;">
+                <strong style="color: var(--text-sub); font-size: 12px; margin-bottom: 5px; text-transform: uppercase; display:block;">Паблик Чаты</strong>
+                <div class="scroll-area public-chats-list-class" style="padding: 0; background: transparent; border-top: 1px solid var(--border-ui); margin-bottom: 10px; max-height: 150px;"></div>
+                <button onclick="createPublicChat()" style="width:100%; text-align: center; border-style: dashed; margin-bottom: 15px;">+ ДОБАВИТЬ ПАБЛИК ЧАТ</button>
+
                 <strong style="color: var(--text-sub); font-size: 12px; margin-bottom: 5px; text-transform: uppercase; display:block;">Группы</strong>
-                <div class="scroll-area groups-list-class" style="padding: 0; background: transparent; border-top: 1px solid var(--border-ui); margin-bottom: 10px; max-height: 200px;"></div>
+                <div class="scroll-area groups-list-class" style="padding: 0; background: transparent; border-top: 1px solid var(--border-ui); margin-bottom: 10px; max-height: 150px;"></div>
                 <button onclick="createGroup()" style="width:100%; text-align: center; border-style: dashed;">+ СОЗДАТЬ ГРУППУ</button>
             </div>
         </div>
@@ -279,8 +283,12 @@
 
         <div class="column" id="col-right">
             <div class="mobile-only" style="margin-bottom: 20px;">
+                <strong style="color: var(--text-sub); font-size: 12px; margin-bottom: 5px; text-transform: uppercase; display:block;">Паблик Чаты</strong>
+                <div class="scroll-area public-chats-list-class" style="padding: 0; background: transparent; border-top: 1px solid var(--border-ui); margin-bottom: 10px; max-height: 150px;"></div>
+                <button onclick="createPublicChat()" style="width:100%; text-align: center; border-style: dashed; margin-bottom: 15px;">+ ДОБАВИТЬ ПАБЛИК ЧАТ</button>
+
                 <strong style="color: var(--text-sub); font-size: 12px; margin-bottom: 5px; text-transform: uppercase; display:block;">Группы</strong>
-                <div class="scroll-area groups-list-class" style="padding: 0; background: transparent; border-top: 1px solid var(--border-ui); margin-bottom: 10px; max-height: 200px;"></div>
+                <div class="scroll-area groups-list-class" style="padding: 0; background: transparent; border-top: 1px solid var(--border-ui); margin-bottom: 10px; max-height: 150px;"></div>
                 <button onclick="createGroup()" style="width:100%; text-align: center; border-style: dashed;">+ СОЗДАТЬ ГРУППУ</button>
             </div>
 
@@ -442,7 +450,7 @@
 
             box.innerHTML = (messages || []).map(m => {
                 const user = userCache[m.sender_id] || { nickname: 'User', avatar_url: DEFAULT_AVATAR };
-                return `<div class="msg-container"><img src="${user.avatar_url}" class="msg-avatar"><div class="msg-content"><div class="msg-info"><b>${user.nickname}</b><span>${new Date(m.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span></div><div style="font-size:14px;">${parseContent(m.text)}</div></div></div>`;
+                return `<div class="msg-container"><img src="${user.avatar_url}" class="msg-avatar"><div class="msg-content"><div class="msg-info"><b>${user.nickname} (ID: ${m.sender_id})</b><span>${new Date(m.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span></div><div style="font-size:14px;">${parseContent(m.text)}</div></div></div>`;
             }).join('');
             box.scrollTop = box.scrollHeight;
         }
@@ -535,13 +543,25 @@
             if(data) document.getElementById('users-list').innerHTML = data.map(u => `<div style="padding:10px 5px; border-bottom:1px solid var(--border-ui); cursor:pointer; display:flex; align-items:center; gap:10px;" onclick="viewProfile('${u.id_number}')"><img src="${u.avatar_url || DEFAULT_AVATAR}" style="width:24px; height:24px; border-radius:0; border:1px solid var(--border-accent);"> ${u.nickname}</div>`).join('');
         }
 
-        // ОБНОВЛЕНО: теперь группы загружаются во все элементы с классом groups-list-class
+        // ОБНОВЛЕНО: загрузка и фильтрация Групп и Паблик чатов
         async function loadGroups() {
             const { data } = await _supabase.from('groups').select('*');
             if(data) {
-                const html = data.map(g => `<div style="padding:8px 5px; border-bottom:1px solid var(--border-ui); cursor:pointer; font-size:13px;" onclick="startGroupChat('${g.id}','${g.name}')"><span style="color:var(--holo-blue);">#</span> ${g.name}</div>`).join('');
-                document.querySelectorAll('.groups-list-class').forEach(el => el.innerHTML = html);
+                // Выделяем Паблик чаты (маркер [PUB] в начале имени)
+                const publics = data.filter(g => g.name.startsWith('[PUB] '));
+                const normals = data.filter(g => !g.name.startsWith('[PUB] '));
+
+                const htmlPublics = publics.map(g => `<div style="padding:8px 5px; border-bottom:1px solid var(--border-ui); cursor:pointer; font-size:13px;" onclick="startGroupChat('${g.id}','${g.name.replace('[PUB] ', '')}')"><span style="color:var(--holo-blue);">🌍</span> ${g.name.replace('[PUB] ', '')}</div>`).join('');
+                document.querySelectorAll('.public-chats-list-class').forEach(el => el.innerHTML = htmlPublics);
+
+                const htmlNormals = normals.map(g => `<div style="padding:8px 5px; border-bottom:1px solid var(--border-ui); cursor:pointer; font-size:13px;" onclick="startGroupChat('${g.id}','${g.name}')"><span style="color:var(--holo-blue);">#</span> ${g.name}</div>`).join('');
+                document.querySelectorAll('.groups-list-class').forEach(el => el.innerHTML = htmlNormals);
             }
+        }
+
+        function createPublicChat() { 
+            const n = prompt("Название паблик чата:"); 
+            if(n) _supabase.from('groups').insert([{name: '[PUB] ' + n}]).then(loadGroups); 
         }
 
         function startGroupChat(id, name) {
