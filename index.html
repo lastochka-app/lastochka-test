@@ -238,7 +238,7 @@
         <div class="card" style="width:320px; padding: 20px;">
             <strong style="font-size: 18px; color: var(--holo-blue); font-weight: 300; display: block; margin-bottom: 15px;">ВХОД В СИСТЕМУ</strong>
             <input type="number" id="my-id-input" placeholder="Ваш ID">
-            <input type="text" id="my-nick-input" placeholder="Никнейм">
+            <input type="text" id="my-nick-input" placeholder="Никнейм (Обязательно при регистрации)">
             <input type="password" id="my-pass-input" placeholder="Пароль">
             <input type="text" id="my-avatar-input" placeholder="URL аватара (опционально)">
             <div style="display: flex; gap: 10px; margin-top: 15px;">
@@ -382,20 +382,33 @@
         }
 
         async function handleAuth(mode) {
-            const id = document.getElementById('my-id-input').value;
-            const pass = document.getElementById('my-pass-input').value;
-            const nick = document.getElementById('my-nick-input').value;
+            const id = document.getElementById('my-id-input').value.trim();
+            const pass = document.getElementById('my-pass-input').value.trim();
+            const nick = document.getElementById('my-nick-input').value.trim();
             let av = document.getElementById('my-avatar-input').value.trim() || DEFAULT_AVATAR;
-            if (mode === 'reg') await _supabase.from('users').insert([{ id_number: id, password: pass, nickname: nick, avatar_url: av }]);
+
+            if (mode === 'reg') {
+                if (!nick) {
+                    alert("Ошибка: Никнейм обязателен для регистрации!");
+                    return;
+                }
+                await _supabase.from('users').insert([{ id_number: id, password: pass, nickname: nick, avatar_url: av }]);
+            }
+
             const { data: user } = await _supabase.from('users').select('*').eq('id_number', id).eq('password', pass).single();
             if (user) {
                 myId = id; myNick = user.nickname;
-                localStorage.setItem('saved_user_id', id); localStorage.setItem('saved_user_pass', pass);
+                localStorage.setItem('saved_user_id', id);
+                localStorage.setItem('saved_user_pass', pass);
                 startApp(user);
-            } else alert("Ошибка входа!");
+            } else alert("Ошибка входа! Проверьте данные.");
         }
 
-        function logout() { localStorage.removeItem('saved_user_id'); localStorage.removeItem('saved_user_pass'); location.reload(); }
+        function logout() {
+            localStorage.removeItem('saved_user_id');
+            localStorage.removeItem('saved_user_pass');
+            location.reload();
+        }
 
         function setTheme(theme) {
             if (theme === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
@@ -452,7 +465,6 @@
             inp.value = ""; loadMessages();
         }
 
-        // ОБНОВЛЕНО: Добавлена логика классов для облачек
         async function loadMessages() {
             if(!currentChatId) return;
             const { data: messages } = await _supabase.from('messages').select('*').eq('chat_id', currentChatId).order('created_at', { ascending: true });
@@ -508,7 +520,9 @@
             const nick = document.getElementById('set-nick').value;
             const av = document.getElementById('set-av').value;
             const bg = document.getElementById('set-bg').value;
+            
             localStorage.setItem('custom_bg', bg);
+
             let up = { nickname: nick };
             if(av) up.avatar_url = av;
             await _supabase.from('users').update(up).eq('id_number', myId);
