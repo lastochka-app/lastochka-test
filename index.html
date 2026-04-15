@@ -83,7 +83,6 @@
             border: 1px solid var(--border-ui);
         }
         
-        /* СТИЛИ КНОПОК HOLO */
         button { 
             background: var(--btn-bg); 
             border: 1px solid var(--border-accent); 
@@ -99,7 +98,6 @@
         button:hover { background: var(--btn-hover); border-color: var(--holo-blue); }
         button:active { background: var(--holo-blue); color: #FFF; border-color: var(--holo-blue); }
         
-        /* СТИЛИ ВВОДА HOLO (Акцент на нижнюю линию) */
         input, textarea { 
             border: none;
             border-bottom: 1px solid var(--border-accent); 
@@ -125,7 +123,6 @@
         
         .embedded-img { max-width: 100%; max-height: 300px; display: block; margin-top: 10px; border: 1px solid var(--border-ui); cursor: pointer; }
         
-        /* ЗАГОЛОВКИ ТАБОВ HOLO */
         .tab-header { 
             border-bottom: 2px solid var(--holo-blue); 
             color: var(--holo-blue); 
@@ -137,16 +134,61 @@
             text-align: left; 
         }
 
-        .msg-container { display: flex; gap: 12px; margin-bottom: 15px; align-items: flex-start; }
-        .msg-avatar { width: 40px; height: 40px; border-radius: 0; object-fit: cover; border: 1px solid var(--border-accent); }
-        .msg-content { flex: 1; background: transparent; padding: 0; }
-        .msg-info { font-size: 12px; margin-bottom: 4px; color: var(--text-sub); display: flex; justify-content: space-between; }
-        .msg-info b { color: var(--text-main); font-weight: 500; }
+        /* === ОБНОВЛЕННЫЙ CSS ДЛЯ ОБЛАЧЕК ЧАТА (HOLO STYLE) === */
+        .msg-container { 
+            display: flex; 
+            margin-bottom: 20px; 
+            align-items: flex-end; 
+            gap: 8px;
+            width: 100%;
+        }
 
-        .like-row { margin-top: 10px; display: flex; align-items: center; gap: 6px; }
-        .like-btn { color: var(--text-sub); border: 1px solid var(--border-ui); padding: 4px 10px; font-size: 12px; border-radius: 20px; text-transform: none; }
-        .like-btn:hover { border-color: var(--holo-blue); color: var(--holo-blue); background: transparent; }
-        .like-btn.active { background: var(--holo-blue); color: white; border-color: var(--holo-blue); }
+        /* Ваши сообщения (Справа) */
+        .msg-container.msg-me {
+            flex-direction: row-reverse;
+        }
+
+        .msg-avatar { 
+            width: 32px; 
+            height: 32px; 
+            flex-shrink: 0;
+            border: 1px solid var(--border-accent); 
+        }
+
+        .msg-content { 
+            max-width: 75%; 
+            padding: 10px 12px; 
+            position: relative;
+            border: 1px solid var(--border-ui);
+            background: var(--bg-col);
+        }
+
+        /* Облачко для своих сообщений */
+        .msg-me .msg-content {
+            background: var(--bg-card);
+            border: 1px solid var(--holo-blue);
+            border-right: 4px solid var(--holo-blue); /* Акцент Holo справа */
+        }
+
+        /* Облачко для чужих сообщений */
+        .msg-container:not(.msg-me) .msg-content {
+            border-left: 4px solid var(--border-accent); /* Акцент слева */
+        }
+
+        .msg-info { 
+            font-size: 11px; 
+            margin-bottom: 4px; 
+            color: var(--text-sub); 
+            display: flex; 
+            gap: 10px;
+            white-space: nowrap;
+        }
+        
+        .msg-me .msg-info {
+            flex-direction: row-reverse;
+        }
+
+        .msg-info b { color: var(--holo-blue); font-weight: 500; text-transform: uppercase; }
 
         #chat-header { 
             background: var(--bg-col); 
@@ -164,7 +206,6 @@
         .mobile-nav button { flex: 1; height: 100%; border: none; background: transparent; color: var(--text-sub); font-size: 11px; padding: 5px; }
         .mobile-nav button:hover, .mobile-nav button:active { color: var(--holo-blue); border-bottom: 3px solid var(--holo-blue); background: transparent; }
 
-        /* === КЛАССЫ РАЗДЕЛЕНИЯ ПК И МОБИЛЬНОЙ ВЕРСИИ === */
         .desktop-only { display: block; }
         .mobile-only { display: none; }
 
@@ -182,7 +223,6 @@
         #notification-container { position: fixed; bottom: 70px; right: 10px; z-index: 9999; pointer-events: none; }
         .toast { background: #323232; color: #FFFFFF; padding: 12px 16px; border-radius: 2px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); margin-top: 10px; font-size: 14px; pointer-events: auto; cursor: pointer; border-left: 4px solid var(--holo-blue); }
         
-        /* Кастомные элементы скроллбара под Holo */
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: var(--bg-col); }
         ::-webkit-scrollbar-thumb { background: var(--border-accent); }
@@ -272,7 +312,7 @@
                     <span id="chat-title" style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:200px;">ДИАЛОГ</span>
                     <button onclick="loadMessages()" style="border:none; padding:5px;">ОБНОВИТЬ</button>
                 </div>
-                <div id="messages-list" class="scroll-area"></div>
+                <div id="messages-list" class="scroll-area" style="background: var(--bg-main);"></div>
                 <div style="padding: 10px; border-top: 1px solid var(--border-ui); display:flex; gap:10px; background: var(--bg-card);">
                     <button onclick="sendImagePrompt()" style="width:50px; border-style: dashed;">IMG</button>
                     <input type="text" id="msg-input" placeholder="Введите сообщение..." onkeyup="if(event.keyCode===13) sendMessage()" style="margin:0;">
@@ -319,29 +359,16 @@
         const DEFAULT_AVATAR = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRLCFpHxyg6G5c4uQQy6U5SlgJr6qq6P6ot7Q&s";
         let userCache = {};
 
-        // --- ИНИЦИАЛИЗАЦИЯ И АВТОВХОД ---
         window.onload = async () => {
             const savedTheme = localStorage.getItem('theme');
             if (savedTheme) setTheme(savedTheme);
-
             const savedBg = localStorage.getItem('custom_bg');
-            if (savedBg) {
-                document.body.style.backgroundImage = `url('${savedBg}')`;
-                document.body.style.backgroundSize = 'cover';
-                document.body.style.backgroundPosition = 'center';
-                document.body.style.backgroundAttachment = 'fixed';
-            }
-
+            if (savedBg) { document.body.style.backgroundImage = `url('${savedBg}')`; document.body.style.backgroundSize = 'cover'; document.body.style.backgroundPosition = 'center'; document.body.style.backgroundAttachment = 'fixed'; }
             const sId = localStorage.getItem('saved_user_id');
             const sPass = localStorage.getItem('saved_user_pass');
-
             if (sId && sPass) {
                 const { data: user } = await _supabase.from('users').select('*').eq('id_number', sId).eq('password', sPass).single();
-                if (user) {
-                    myId = sId;
-                    myNick = user.nickname;
-                    startApp(user);
-                }
+                if (user) { myId = sId; myNick = user.nickname; startApp(user); }
             }
         };
 
@@ -359,34 +386,23 @@
             const pass = document.getElementById('my-pass-input').value;
             const nick = document.getElementById('my-nick-input').value;
             let av = document.getElementById('my-avatar-input').value.trim() || DEFAULT_AVATAR;
-
-            if (mode === 'reg') {
-                await _supabase.from('users').insert([{ id_number: id, password: pass, nickname: nick, avatar_url: av }]);
-            }
-
+            if (mode === 'reg') await _supabase.from('users').insert([{ id_number: id, password: pass, nickname: nick, avatar_url: av }]);
             const { data: user } = await _supabase.from('users').select('*').eq('id_number', id).eq('password', pass).single();
             if (user) {
                 myId = id; myNick = user.nickname;
-                localStorage.setItem('saved_user_id', id);
-                localStorage.setItem('saved_user_pass', pass);
+                localStorage.setItem('saved_user_id', id); localStorage.setItem('saved_user_pass', pass);
                 startApp(user);
             } else alert("Ошибка входа!");
         }
 
-        function logout() {
-            localStorage.removeItem('saved_user_id');
-            localStorage.removeItem('saved_user_pass');
-            location.reload();
-        }
+        function logout() { localStorage.removeItem('saved_user_id'); localStorage.removeItem('saved_user_pass'); location.reload(); }
 
-        // --- ТЕМЫ ---
         function setTheme(theme) {
             if (theme === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
             else document.documentElement.removeAttribute('data-theme');
             localStorage.setItem('theme', theme);
         }
 
-        // --- ПРОФИЛЬ И КОНТЕНТ ---
         async function viewProfile(userId) {
             switchTab('col-main');
             document.getElementById('chat-window').style.display = 'none';
@@ -403,10 +419,7 @@
             document.getElementById('write-btn').style.display = isMe ? 'none' : 'block';
             document.getElementById('follow-btn').style.display = isMe ? 'none' : 'block';
             document.getElementById('fav-btn').style.display = isMe ? 'none' : 'block';
-            if(!isMe) {
-                document.getElementById('write-btn').onclick = () => openPrivate(user.id_number, user.nickname);
-                checkFollowStatus(userId); checkFavoriteStatus(userId);
-            } else loadInbox();
+            if(!isMe) { document.getElementById('write-btn').onclick = () => openPrivate(user.id_number, user.nickname); checkFollowStatus(userId); checkFavoriteStatus(userId); } else loadInbox();
             updateFollowCounts(userId); loadPosts(userId);
         }
 
@@ -432,7 +445,6 @@
             }
         }
 
-        // --- СООБЩЕНИЯ ---
         async function sendMessage() {
             const inp = document.getElementById('msg-input');
             if(!inp.value.trim() || !currentChatId) return;
@@ -440,6 +452,7 @@
             inp.value = ""; loadMessages();
         }
 
+        // ОБНОВЛЕНО: Добавлена логика классов для облачек
         async function loadMessages() {
             if(!currentChatId) return;
             const { data: messages } = await _supabase.from('messages').select('*').eq('chat_id', currentChatId).order('created_at', { ascending: true });
@@ -450,7 +463,18 @@
 
             box.innerHTML = (messages || []).map(m => {
                 const user = userCache[m.sender_id] || { nickname: 'User', avatar_url: DEFAULT_AVATAR };
-                return `<div class="msg-container"><img src="${user.avatar_url}" class="msg-avatar"><div class="msg-content"><div class="msg-info"><b>${user.nickname} (ID: ${m.sender_id})</b><span>${new Date(m.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span></div><div style="font-size:14px;">${parseContent(m.text)}</div></div></div>`;
+                const isMe = m.sender_id == myId; // Проверка: я отправитель или нет
+                return `
+                <div class="msg-container ${isMe ? 'msg-me' : ''}">
+                    <img src="${user.avatar_url}" class="msg-avatar">
+                    <div class="msg-content">
+                        <div class="msg-info">
+                            <b>${user.nickname}</b>
+                            <span>${new Date(m.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                        </div>
+                        <div style="font-size:14px; word-break: break-word;">${parseContent(m.text)}</div>
+                    </div>
+                </div>`;
             }).join('');
             box.scrollTop = box.scrollHeight;
         }
@@ -463,7 +487,6 @@
             switchTab('col-main'); loadMessages();
         }
 
-        // --- ВСПОМОГАТЕЛЬНЫЕ ---
         function switchTab(id) {
             document.querySelectorAll('.column').forEach(c => c.classList.remove('active-mob'));
             document.getElementById(id).classList.add('active-mob');
@@ -485,9 +508,7 @@
             const nick = document.getElementById('set-nick').value;
             const av = document.getElementById('set-av').value;
             const bg = document.getElementById('set-bg').value;
-            
             localStorage.setItem('custom_bg', bg);
-
             let up = { nickname: nick };
             if(av) up.avatar_url = av;
             await _supabase.from('users').update(up).eq('id_number', myId);
@@ -543,17 +564,13 @@
             if(data) document.getElementById('users-list').innerHTML = data.map(u => `<div style="padding:10px 5px; border-bottom:1px solid var(--border-ui); cursor:pointer; display:flex; align-items:center; gap:10px;" onclick="viewProfile('${u.id_number}')"><img src="${u.avatar_url || DEFAULT_AVATAR}" style="width:24px; height:24px; border-radius:0; border:1px solid var(--border-accent);"> ${u.nickname}</div>`).join('');
         }
 
-        // ОБНОВЛЕНО: загрузка и фильтрация Групп и Паблик чатов
         async function loadGroups() {
             const { data } = await _supabase.from('groups').select('*');
             if(data) {
-                // Выделяем Паблик чаты (маркер [PUB] в начале имени)
                 const publics = data.filter(g => g.name.startsWith('[PUB] '));
                 const normals = data.filter(g => !g.name.startsWith('[PUB] '));
-
                 const htmlPublics = publics.map(g => `<div style="padding:8px 5px; border-bottom:1px solid var(--border-ui); cursor:pointer; font-size:13px;" onclick="startGroupChat('${g.id}','${g.name.replace('[PUB] ', '')}')"><span style="color:var(--holo-blue);">🌍</span> ${g.name.replace('[PUB] ', '')}</div>`).join('');
                 document.querySelectorAll('.public-chats-list-class').forEach(el => el.innerHTML = htmlPublics);
-
                 const htmlNormals = normals.map(g => `<div style="padding:8px 5px; border-bottom:1px solid var(--border-ui); cursor:pointer; font-size:13px;" onclick="startGroupChat('${g.id}','${g.name}')"><span style="color:var(--holo-blue);">#</span> ${g.name}</div>`).join('');
                 document.querySelectorAll('.groups-list-class').forEach(el => el.innerHTML = htmlNormals);
             }
