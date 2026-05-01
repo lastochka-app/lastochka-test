@@ -4,6 +4,8 @@
     <title>Bigion</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <!-- Подключение Google Material Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <style>
         /* ИМПОРТ ШРИФТОВ (Oleo Script для логотипа, как замена Billabong, и системные шрифты) */
         @import url('https://fonts.googleapis.com/css2?family=Oleo+Script&display=swap');
@@ -222,8 +224,9 @@
         
         /* МОБИЛЬНАЯ НАВИГАЦИЯ */
         .mobile-nav { display: none; background: var(--bg-card); border-top: 1px solid var(--border-ui); flex-shrink: 0; height: 50px; justify-content: space-around; align-items: center; }
-        .mobile-nav button { flex: 1; height: 100%; border: none; background: transparent; color: var(--text-main); font-size: 12px; font-weight: 600; padding: 5px; }
+        .mobile-nav button { flex: 1; height: 100%; border: none; background: transparent; color: var(--text-main); display: flex; align-items: center; justify-content: center; padding: 5px; }
         .mobile-nav button:active { opacity: 0.5; }
+        .mobile-nav .material-icons { font-size: 28px; }
 
         .desktop-only { display: block; }
         .mobile-only { display: none; }
@@ -363,14 +366,22 @@
         </div>
     </div>
 
+    <!-- Обновленная мобильная навигация с иконками -->
     <div class="mobile-nav" id="mob-nav">
-        <button onclick="loadFeed()">ЛЕНТА</button>
-        <button onclick="switchTab('col-main'); showWall();">ПРОФИЛЬ</button>
-        <button onclick="switchTab('col-right')">ЛЮДИ</button>
+        <button onclick="loadFeed()" title="Лента">
+            <span class="material-icons">home</span>
+        </button>
+        <button onclick="switchTab('col-main'); showWall();" title="Профиль">
+            <span class="material-icons">account_circle</span>
+        </button>
+        <button onclick="switchTab('col-right')" title="Люди">
+            <span class="material-icons">search</span>
+        </button>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
+        // ... (скрипт остается прежним, но с заменой текста в функции showAbout) ...
         const SUPABASE_URL = 'https://xjekyaiyfvtjtkinlmbv.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_Nne-WFtskhN6oEkYkgtWhA_KHo2W8YC'; 
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -664,7 +675,7 @@
 
         function showAbout() {
             clearMainArea();
-            document.getElementById('wall-posts').innerHTML = `<div class="tab-header">О проекте</div><div class="card" style="line-height:1.6; padding:30px;"><strong style="font-size:24px; font-weight:300; color:var(--text-main);">Ласточка.ru</strong><br><span style="color:var(--text-sub);">Все права защищены!</span><br><br>Ласточка.ru это мессенджер где ваши данные будут защищены.</div>`;
+            document.getElementById('wall-posts').innerHTML = `<div class="tab-header">О проекте</div><div class="card" style="line-height:1.6; padding:30px;"><strong style="font-size:24px; font-weight:300; color:var(--text-main);">Bigion.ru</strong><br><span style="color:var(--text-sub);">Все права защищены!</span><br><br>Bigion.ru это мессенджер где ваши данные будут защищены.</div>`;
         }
         
         function showWall() { viewProfile(myId); }
