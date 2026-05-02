@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <title>Bigion</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Oleo+Script&display=swap');
+
+        :root {
+            --bg-main: #fafafa;
+            --bg-col: transparent;
+            --bg-card: #ffffff;
+            --text-main: #262626;
+            --text-sub: #8e8e8e;
+            --ig-blue: #3897f0;
+            --border-ui: #dbdbdb;
+            --border-accent: #efefef;
+            --btn-bg: transparent;
+            --btn-hover: transparent;
+        }
+
+        [data-theme="dark"] {
+            --bg-main: #000000;
+            --bg-col: transparent;
+            --bg-card: #000000;
+            --text-main: #f5f5f5;
+            --text-sub: #a8a8a8;
+            --ig-blue: #0095f6;
+            --border-ui: #262626;
+            --border-accent: #121212;
+        }
+
+        html, body { 
+            height: 100%; 
+            margin: 0; 
+            padding: 0; 
+            overflow: hidden; 
+            background-color: var(--bg-main); 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
+            font-size: 14px; 
+            color: var(--text-main); 
+            font-weight: 400;
+        }
+        
+        body { display: flex; flex-direction: column; transition: background 0.2s; }
+        
+        h1 { 
+            color: var(--text-main); 
+            font-size: 28px; 
+            font-family: 'Oleo Script', cursive; 
+            margin: 0; 
+            padding: 12px 20px; 
+            text-align: center; 
+            flex-shrink: 0; 
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border-ui);
+            font-weight: 400;
+            letter-spacing: 1px;
+        }
+        
+        #auth-box { flex: 1; display: flex; justify-content: center; align-items: center; background: var(--bg-main); }
+        #main-ui { display: none; flex: 1; width: 100%; max-width: 935px; margin: 0 auto; padding: 20px 10px; box-sizing: border-box; gap: 28px; overflow: hidden; }
+        
+        .column { display: flex; flex-direction: column; background: var(--bg-col); padding: 0; height: 100%; box-sizing: border-box; border: none !important; }
+        #col-left { width: 220px; flex-shrink: 0; }
+        #col-main { flex: 1; min-width: 300px; }
+        #col-right { width: 250px; flex-shrink: 0; }
+
+        .card { 
+            background: var(--bg-card); 
+            padding: 16px; 
+            margin-bottom: 15px; 
+            flex-shrink: 0; 
+            border: 1px solid var(--border-ui);
+            border-radius: 3px;
+        }
+        
+        button { 
+            background: var(--btn-bg); 
+            border: 1px solid var(--border-ui); 
+            border-radius: 4px; 
+            padding: 6px 10px; 
+            cursor: pointer; 
+            font-weight: 600; 
+            font-size: 14px; 
+            color: var(--text-main); 
+            transition: opacity 0.1s;
+        }
+        button:active { opacity: 0.7; }
+        
+        button[onclick*="handleAuth('login')"], 
+        button[onclick="createPost()"],
+        button[onclick="sendMessage()"],
+        button[onclick*="follow"],
+        #follow-btn {
+            background: var(--ig-blue);
+            color: #fff;
+            border-color: var(--ig-blue);
+        }
+
+        input, textarea { 
+            border: 1px solid var(--border-ui);
+            background: var(--bg-main); 
+            border-radius: 3px;
+            color: var(--text-main); 
+            padding: 9px 8px; 
+            margin: 5px 0 10px 0; 
+            width: 100%; 
+            box-sizing: border-box; 
+            font-family: inherit; 
+            font-size: 14px; 
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        input:focus, textarea:focus { border-color: var(--text-sub); }
+        
+        .scroll-area { flex: 1; overflow-y: auto; background: transparent; padding: 0; }
+        
+        .post { 
+            background: var(--bg-card);
+            border: 1px solid var(--border-ui); 
+            border-radius: 3px;
+            margin-bottom: 20px; 
+            padding: 0;
+        }
+        .post-header { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            padding: 14px;
+            border-bottom: 1px solid var(--border-accent);
+        }
+        .post-header b { font-weight: 600 !important; font-size: 14px !important; }
+        .post > div:nth-child(2) { padding: 14px; }
+        .like-row { padding: 10px 14px; }
+        
+        .like-btn { background: transparent; border: none; padding: 0; color: var(--text-main); font-weight: 600; font-size: 14px; }
+        .like-btn.active { color: #ed4956; }
+
+        .del-btn { color: #ed4956; border: none; background: none; padding: 0; font-size: 12px; font-weight: 600; }
+        .del-btn:hover { background: transparent; opacity: 0.7; border: none; }
+        
+        .embedded-img { width: 100%; max-height: 500px; display: block; margin-top: 10px; border: none; cursor: pointer; object-fit: cover; }
+        
+        .tab-header { 
+            color: var(--text-sub); 
+            padding: 8px 0; 
+            margin-bottom: 15px; 
+            font-weight: 600; 
+            font-size: 16px;
+            text-align: left; 
+        }
+
+        .msg-container { 
+            display: flex; 
+            margin-bottom: 15px; 
+            align-items: flex-end; 
+            gap: 10px;
+            width: 100%;
+            padding: 0 10px;
+            box-sizing: border-box;
+        }
+
+        .msg-container.msg-me { flex-direction: row-reverse; }
+
+        .msg-avatar { 
+            width: 32px; 
+            height: 32px; 
+            flex-shrink: 0;
+            border-radius: 50%;
+            border: 1px solid var(--border-ui); 
+            object-fit: cover;
+        }
+
+        .msg-content { 
+            max-width: 75%; 
+            padding: 12px 16px; 
+            border-radius: 22px;
+            border: 1px solid var(--border-ui);
+            background: var(--bg-card);
+        }
+
+        .msg-me .msg-content {
+            background: #efefef; 
+            border: 1px solid transparent;
+            color: #000;
+        }
+        [data-theme="dark"] .msg-me .msg-content { background: #262626; color: #fff; }
+
+        .msg-info { 
+            font-size: 11px; 
+            margin-bottom: 4px; 
+            color: var(--text-sub); 
+            display: flex; 
+            gap: 10px;
+        }
+        .msg-me .msg-info { flex-direction: row-reverse; }
+        .msg-info b { color: var(--text-main); font-weight: 600; }
+
+        #chat-header { 
+            background: var(--bg-card); 
+            color: var(--text-main); 
+            padding: 15px; 
+            font-weight: 600; 
+            font-size: 16px;
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            border-bottom: 1px solid var(--border-ui);
+        }
+        
+        .mobile-nav { display: none; background: var(--bg-card); border-top: 1px solid var(--border-ui); flex-shrink: 0; height: 50px; justify-content: space-around; align-items: center; }
+        .mobile-nav button { flex: 1; height: 100%; border: none; background: transparent; color: var(--text-main); display: flex; align-items: center; justify-content: center; padding: 5px; }
+        .mobile-nav button:active { opacity: 0.5; }
+        .mobile-nav .material-icons { font-size: 28px; }
+
+        .desktop-only { display: block; }
+        .mobile-only { display: none; }
+
+        @media (max-width: 768px) {
+            #main-ui { flex-direction: column; padding: 0; gap: 0; }
+            .column { width: 100% !important; min-width: 0 !important; display: none; border: none; padding: 0; }
+            .mobile-nav { display: flex; }
+            .column.active-mob { display: flex; }
+            h1 { font-size: 24px; padding: 12px; }
+            .desktop-only { display: none !important; }
+            .mobile-only { display: block !important; }
+        }
+
+        #notification-container { position: fixed; bottom: 70px; right: 10px; z-index: 9999; pointer-events: none; }
+        .toast { background: var(--text-main); color: var(--bg-main); padding: 12px 16px; border-radius: 4px; margin-top: 10px; font-size: 14px; pointer-events: auto; cursor: pointer; }
+        
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--border-ui); border-radius: 10px; }
+    </style>
+</head>
+<body>
+
+    <div id="notification-container"></div>
+    <h1>Bigion</h1>
+
+    <div id="auth-box">
+        <div class="card" style="width:320px; padding: 24px; text-align: center;">
+            <strong style="font-size: 24px; color: var(--text-main); font-family: 'Oleo Script', cursive; font-weight: 400; display: block; margin-bottom: 20px;">Вход в систему</strong>
+            <input type="number" id="my-id-input" placeholder="Ваш ID">
+            <input type="text" id="my-nick-input" placeholder="Никнейм (Обязательно при регистрации)">
+            <input type="password" id="my-pass-input" placeholder="Пароль">
+            <input type="text" id="my-avatar-input" placeholder="URL аватара (опционально)">
+            <div style="display: flex; gap: 10px; margin-top: 15px; flex-direction: column;">
+                <button onclick="handleAuth('login')" style="width: 100%;">Войти</button>
+                <button onclick="handleAuth('reg')" style="width: 100%; background: transparent; color: var(--ig-blue); border: none;">Регистрация</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="main-ui">
+        <div class="column" id="col-left">
+            <div style="text-align:center; border: none; background: transparent; margin-bottom: 20px;">
+                <img id="my-avatar-img" src="" style="width:80px; height:80px; border-radius:50%; object-fit: cover; border: 1px solid var(--border-ui);">
+                <div id="display-nick" style="font-weight:600; font-size: 16px; margin-top:10px;"></div>
+            </div>
+            <button onclick="loadFeed()" style="width:100%; margin-bottom:10px; text-align: left; background:transparent; border:none; padding-left:0;">Главная</button>
+            <button onclick="loadFavoritesTab()" style="width:100%; margin-bottom:10px; text-align: left; background:transparent; border:none; padding-left:0;">Избранные</button>
+            <button onclick="showSettings()" style="width:100%; margin-bottom:10px; text-align: left; background:transparent; border:none; padding-left:0;">Настройки</button>
+            <button onclick="showAbout()" style="width:100%; margin-bottom:20px; text-align: left; background:transparent; border:none; padding-left:0;">О нас</button>
+
+            <div class="desktop-only" style="margin-top: 10px;">
+                <strong style="color: var(--text-sub); font-size: 12px; margin-bottom: 10px; text-transform: uppercase; display:block;">Паблик Чаты</strong>
+                <div class="scroll-area public-chats-list-class" style="padding: 0; background: transparent; margin-bottom: 10px; max-height: 150px;"></div>
+                <button onclick="createPublicChat()" style="width:100%; text-align: center; background:transparent; border-style:dashed;">+ Добавить паблик чат</button>
+
+                <strong style="color: var(--text-sub); font-size: 12px; margin-top: 20px; margin-bottom: 10px; text-transform: uppercase; display:block;">Группы</strong>
+                <div class="scroll-area groups-list-class" style="padding: 0; background: transparent; margin-bottom: 10px; max-height: 150px;"></div>
+                <button onclick="createGroup()" style="width:100%; text-align: center; background:transparent; border-style:dashed;">+ Создать группу</button>
+            </div>
+        </div>
+
+        <div class="column active-mob" id="col-main">
+            <div id="profile-screen" style="display:flex; flex-direction:column; height:100%;">
+                <div id="profile-card" style="display:flex; align-items:center; gap:25px; padding: 20px 0 30px 0; border-bottom: 1px solid var(--border-ui);">
+                    <img id="view-avatar" style="width:100px; height:100px; border-radius:50%; object-fit:cover; border:1px solid var(--border-ui); margin-left: 15px;">
+                    <div style="flex:1;">
+                        <b id="view-nick" style="font-size:24px; font-weight: 300;"></b><br>
+                        <small id="view-id-label" style="color:var(--text-sub); font-size: 14px;"></small>
+                        <div style="font-size:14px; margin-top:10px;">
+                            <span style="margin-right:15px">Подписчики: <b id="count-followers" style="font-weight:600;">0</b></span> 
+                            <span>Подписки: <b id="count-following" style="font-weight:600;">0</b></span>
+                        </div>
+                        <div style="margin-top:15px; display:flex; flex-wrap:wrap; gap:8px;">
+                            <button id="write-btn" style="display:none; background:transparent; color:var(--text-main);">Написать</button>
+                            <button id="follow-btn" style="display:none;">Подписаться</button>
+                            <button id="fav-btn" style="display:none; background:transparent;">В избранное</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="inbox-area" style="display:none; padding: 15px 0; border-bottom: 1px solid var(--border-ui);">
+                    <strong style="color:var(--text-sub); font-size:12px; text-transform: uppercase;">Последние сообщения</strong>
+                    <div id="inbox-list" style="margin-top:10px;"></div>
+                </div>
+
+                <div class="mobile-only" style="padding: 10px 15px 0 15px;">
+                    <button onclick="showSettings()" style="width: 100%; background:transparent;">⚙ Настройки</button>
+                </div>
+
+                <div id="wall-input-area" style="padding: 15px 0; border-bottom: 1px solid var(--border-ui); margin-bottom: 15px;">
+                    <textarea id="post-text" placeholder="Что нового?" rows="2"></textarea>
+                    <div style="text-align: right;">
+                        <button onclick="createPost()">Опубликовать</button>
+                    </div>
+                </div>
+                <div id="wall-posts" class="scroll-area"></div>
+            </div>
+
+            <div id="chat-window" style="display:none; flex-direction:column; height:100%; border: 1px solid var(--border-ui); border-radius:3px; background:var(--bg-card);">
+                <div id="chat-header">
+                    <button onclick="switchTab('col-left')" style="border:none; padding:5px; background:transparent;">< Назад</button>
+                    <span id="chat-title" style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:200px;">ДИАЛОГ</span>
+                    <button onclick="loadMessages()" style="border:none; padding:5px; background:transparent; font-weight:600; color:var(--ig-blue);">Обновить</button>
+                </div>
+                <div id="messages-list" class="scroll-area" style="background: var(--bg-card); padding: 15px 0;"></div>
+                <div style="padding: 15px; border-top: 1px solid var(--border-ui); display:flex; gap:10px; background: var(--bg-card);">
+                    <button onclick="sendImagePrompt()" style="width:50px; background:transparent; border: 1px dashed var(--border-ui);">IMG</button>
+                    <input type="text" id="msg-input" placeholder="Напишите сообщение..." onkeyup="if(event.keyCode===13) sendMessage()" style="margin:0; border-radius:20px; padding:10px 15px;">
+                    <button onclick="sendMessage()" style="width:80px;">Отпр.</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="column" id="col-right">
+            <div class="mobile-only" style="margin-bottom: 20px; padding: 0 15px;">
+                <strong style="color: var(--text-sub); font-size: 12px; margin-bottom: 10px; text-transform: uppercase; display:block;">Паблик Чаты</strong>
+                <div class="scroll-area public-chats-list-class" style="padding: 0; background: transparent; margin-bottom: 10px; max-height: 150px;"></div>
+                <button onclick="createPublicChat()" style="width:100%; text-align: center; background:transparent; border-style: dashed; margin-bottom: 15px;">+ Добавить паблик чат</button>
+
+                <strong style="color: var(--text-sub); font-size: 12px; margin-bottom: 10px; text-transform: uppercase; display:block;">Группы</strong>
+                <div class="scroll-area groups-list-class" style="padding: 0; background: transparent; margin-bottom: 10px; max-height: 150px;"></div>
+                <button onclick="createGroup()" style="width:100%; text-align: center; background:transparent; border-style: dashed;">+ Создать группу</button>
+            </div>
+
+            <div style="padding: 0 10px;">
+                <strong style="color: var(--text-sub); font-size: 12px; margin-bottom: 10px; text-transform: uppercase; display:block;">Поиск по ID</strong>
+                <div style="display:flex; gap:5px; margin-bottom: 25px;">
+                    <input type="number" id="target-id-input" style="margin:0;">
+                    <button onclick="goToId()" style="background:transparent;">GO</button>
+                </div>
+                
+                <strong style="color: var(--text-sub); font-size: 12px; margin-bottom: 10px; text-transform: uppercase; display:block;">Рекомендации</strong>
+                <div id="users-list" class="scroll-area" style="padding: 0; background: transparent;"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="mobile-nav" id="mob-nav">
+        <button onclick="loadFeed()" title="Лента">
+            <span class="material-icons">home</span>
+        </button>
+        <button onclick="switchTab('col-main'); showWall();" title="Профиль">
+            <span class="material-icons">account_circle</span>
+        </button>
+        <button onclick="switchTab('col-right')" title="Люди">
+            <span class="material-icons">search</span>
+        </button>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        const SUPABASE_URL = 'https://xjekyaiyfvtjtkinlmbv.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_Nne-WFtskhN6oEkYkgtWhA_KHo2W8YC'; 
+        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        let myId, myNick, currentChatId;
+        const DEFAULT_AVATAR = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRLCFpHxyg6G5c4uQQy6U5SlgJr6qq6P6ot7Q&s";
+        let userCache = {};
+
+        window.onload = async () => {
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme) setTheme(savedTheme);
+            const savedBg = localStorage.getItem('custom_bg');
+            if (savedBg) { document.body.style.backgroundImage = `url('${savedBg}')`; document.body.style.backgroundSize = 'cover'; document.body.style.backgroundPosition = 'center'; document.body.style.backgroundAttachment = 'fixed'; }
+            const sId = localStorage.getItem('saved_user_id');
+            const sPass = localStorage.getItem('saved_user_pass');
+            if (sId && sPass) {
+                const { data: user } = await _supabase.from('users').select('*').eq('id_number', sId).eq('password', sPass).single();
+                if (user) { myId = sId; myNick = user.nickname; startApp(user); }
+            }
+        };
+
+        function startApp(user) {
+            document.getElementById('auth-box').style.display = 'none';
+            document.getElementById('main-ui').style.display = 'flex';
+            if(window.innerWidth <= 768) document.getElementById('mob-nav').style.display = 'flex';
+            document.getElementById('display-nick').innerText = user.nickname;
+            document.getElementById('my-avatar-img').src = user.avatar_url || DEFAULT_AVATAR;
+            loadGroups(); loadUsers(); viewProfile(myId); initRealtime();
+        }
+
+        async function handleAuth(mode) {
+            const id = document.getElementById('my-id-input').value.trim();
+            const pass = document.getElementById('my-pass-input').value.trim();
+            const nick = document.getElementById('my-nick-input').value.trim();
+            let av = document.getElementById('my-avatar-input').value.trim() || DEFAULT_AVATAR;
+
+            if (mode === 'reg') {
+                if (!nick) {
+                    alert("Ошибка: Никнейм обязателен для регистрации!");
+                    return;
+                }
+                await _supabase.from('users').insert([{ id_number: id, password: pass, nickname: nick, avatar_url: av }]);
+            }
+
+            const { data: user } = await _supabase.from('users').select('*').eq('id_number', id).eq('password', pass).single();
+            if (user) {
+                myId = id; myNick = user.nickname;
+                localStorage.setItem('saved_user_id', id);
+                localStorage.setItem('saved_user_pass', pass);
+                startApp(user);
+            } else alert("Ошибка входа! Проверьте данные.");
+        }
+
+        function logout() {
+            localStorage.removeItem('saved_user_id');
+            localStorage.removeItem('saved_user_pass');
+            location.reload();
+        }
+
+        function setTheme(theme) {
+            if (theme === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+            else document.documentElement.removeAttribute('data-theme');
+            localStorage.setItem('theme', theme);
+        }
+
+        async function viewProfile(userId) {
+            switchTab('col-main');
+            document.getElementById('chat-window').style.display = 'none';
+            document.getElementById('profile-screen').style.display = 'flex';
+            document.getElementById('profile-card').style.display = 'flex';
+            const { data: user } = await _supabase.from('users').select('*').eq('id_number', userId).single();
+            if(!user) return;
+            document.getElementById('view-avatar').src = user.avatar_url || DEFAULT_AVATAR;
+            document.getElementById('view-nick').innerText = user.nickname;
+            document.getElementById('view-id-label').innerText = "ID: " + user.id_number;
+            const isMe = (userId == myId);
+            document.getElementById('wall-input-area').style.display = isMe ? 'block' : 'none';
+            document.getElementById('inbox-area').style.display = isMe ? 'block' : 'none';
+            document.getElementById('write-btn').style.display = isMe ? 'none' : 'block';
+            document.getElementById('follow-btn').style.display = isMe ? 'none' : 'block';
+            document.getElementById('fav-btn').style.display = isMe ? 'none' : 'block';
+            if(!isMe) { document.getElementById('write-btn').onclick = () => openPrivate(user.id_number, user.nickname); checkFollowStatus(userId); checkFavoriteStatus(userId); } else loadInbox();
+            updateFollowCounts(userId); loadPosts(userId);
+        }
+
+        async function createPost() {
+            const t = document.getElementById('post-text').value.trim();
+            if(!t) return;
+            await _supabase.from('posts').insert([{ author_id: myId, text: t, likes: 0, liked_by: [] }]);
+            document.getElementById('post-text').value = ""; viewProfile(myId);
+        }
+
+        async function loadPosts(userId) {
+            const { data: posts } = await _supabase.from('posts').select('*').eq('author_id', userId).order('created_at', { ascending: false });
+            const wall = document.getElementById('wall-posts');
+            wall.innerHTML = '';
+            if(posts) {
+                posts.forEach(p => {
+                    const isLiked = (p.liked_by || []).includes(String(myId));
+                    const div = document.createElement('div');
+                    div.className = 'post';
+                    div.innerHTML = `<div class="post-header"><small style="color:var(--text-sub);">${new Date(p.created_at).toLocaleDateString()}</small>${p.author_id == myId ? `<button class="del-btn" onclick="deletePost('${p.id}')">Удалить</button>` : ''}</div><div style="margin-top:5px; font-size:15px; line-height: 1.4;">${parseContent(p.text)}</div><div class="like-row"><button onclick="toggleLike('${p.id}', '${userId}')" class="${isLiked?'like-btn active':'like-btn'}">Нравится (${p.likes || 0})</button></div>`;
+                    wall.appendChild(div);
+                });
+            }
+        }
+
+        async function sendMessage() {
+            const inp = document.getElementById('msg-input');
+            if(!inp.value.trim() || !currentChatId) return;
+            await _supabase.from('messages').insert([{ sender_id: myId, chat_id: currentChatId, text: inp.value.trim() }]);
+            inp.value = ""; loadMessages();
+        }
+
+        async function loadMessages() {
+            if(!currentChatId) return;
+            const { data: messages } = await _supabase.from('messages').select('*').eq('chat_id', currentChatId).order('created_at', { ascending: true });
+            const box = document.getElementById('messages-list');
+            const senderIds = [...new Set(messages.map(m => m.sender_id))];
+            const { data: users } = await _supabase.from('users').select('id_number, nickname, avatar_url').in('id_number', senderIds);
+            if(users) users.forEach(u => userCache[u.id_number] = u);
+
+            box.innerHTML = (messages || []).map(m => {
+                const user = userCache[m.sender_id] || { nickname: 'User', avatar_url: DEFAULT_AVATAR };
+                const isMe = m.sender_id == myId;
+                return `
+                <div class="msg-container ${isMe ? 'msg-me' : ''}">
+                    <img src="${user.avatar_url}" class="msg-avatar">
+                    <div class="msg-content">
+                        <div class="msg-info">
+                            <b>${user.nickname}</b>
+                            <span>${new Date(m.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                        </div>
+                        <div style="font-size:14px; word-break: break-word;">${parseContent(m.text)}</div>
+                    </div>
+                </div>`;
+            }).join('');
+            box.scrollTop = box.scrollHeight;
+        }
+
+        async function openPrivate(id, nick) {
+            currentChatId = [myId, id].sort().join("_");
+            document.getElementById('profile-screen').style.display = 'none';
+            document.getElementById('chat-window').style.display = 'flex';
+            document.getElementById('chat-title').innerText = nick;
+            switchTab('col-main'); loadMessages();
+        }
+
+        function switchTab(id) {
+            document.querySelectorAll('.column').forEach(c => c.classList.remove('active-mob'));
+            document.getElementById(id).classList.add('active-mob');
+        }
+
+        function parseContent(str) {
+            const urlPattern = /(https?:\/\/[^\s]+)/g;
+            return str.replace(urlPattern, (u) => u.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? `<img src="${u}" class="embedded-img" onclick="window.open('${u}')">` : `<a href="${u}" target="_blank" style="color:var(--ig-blue); text-decoration:none;">${u}</a>`);
+        }
+
+        function showSettings() {
+            clearMainArea();
+            const wall = document.getElementById('wall-posts');
+            const currentBg = localStorage.getItem('custom_bg') || '';
+            wall.innerHTML = `<div class="tab-header">Настройки</div><div class="card"><label style="color:var(--text-sub); font-size:12px; font-weight:600;">НИКНЕЙМ</label><input type="text" id="set-nick" value="${myNick}"><label style="color:var(--text-sub); font-size:12px; font-weight:600;">URL АВАТАРА</label><input type="text" id="set-av"><label style="color:var(--text-sub); font-size:12px; font-weight:600;">URL КАСТОМНОГО ФОНА</label><input type="text" id="set-bg" value="${currentBg}"><button onclick="updateProfile()" style="margin-top:15px; background:var(--ig-blue); color:#fff; border:none;">Сохранить изменения</button></div><div class="card" style="margin-top: 20px;"><strong style="font-size:14px;">ОФОРМЛЕНИЕ (HOLO):</strong><div style="display:flex; gap:10px; margin-top:15px;"><button onclick="setTheme('light')" style="flex:1; background:transparent;">Светлая</button><button onclick="setTheme('dark')" style="flex:1; background:transparent;">Темная</button></div><br><br><button onclick="logout()" style="color:#ed4956; border-color:#ed4956; width:100%; background:transparent;">Выйти из аккаунта</button></div>`;
+        }
+
+        async function updateProfile() {
+            const nick = document.getElementById('set-nick').value;
+            const av = document.getElementById('set-av').value;
+            const bg = document.getElementById('set-bg').value;
+            
+            localStorage.setItem('custom_bg', bg);
+
+            let up = { nickname: nick };
+            if(av) up.avatar_url = av;
+            await _supabase.from('users').update(up).eq('id_number', myId);
+            location.reload(); 
+        }
+
+        function clearMainArea() {
+            switchTab('col-main');
+            document.getElementById('chat-window').style.display = 'none';
+            document.getElementById('profile-screen').style.display = 'flex';
+            document.getElementById('profile-card').style.display = 'none';
+            document.getElementById('wall-input-area').style.display = 'none';
+            document.getElementById('inbox-area').style.display = 'none';
+            document.getElementById('wall-posts').innerHTML = '';
+        }
+
+        async function loadFeed() {
+            clearMainArea();
+            const { data: posts } = await _supabase.from('posts').select('*').order('created_at', { ascending: false }).limit(50);
+            const wall = document.getElementById('wall-posts');
+            wall.innerHTML = '<div class="tab-header">Лента</div>';
+            if(posts) {
+                posts.forEach(p => {
+                    const isLiked = (p.liked_by || []).includes(String(myId));
+                    const div = document.createElement('div');
+                    div.className = 'post';
+                    div.innerHTML = `<div class="post-header"><b style="color:var(--text-main); font-size:14px; cursor:pointer;" onclick="viewProfile('${p.author_id}')">ID ${p.author_id}</b><small style="color:var(--text-sub);">${new Date(p.created_at).toLocaleDateString()}</small></div><div style="margin-top:5px; font-size:15px; line-height: 1.4;">${parseContent(p.text)}</div><div class="like-row"><button onclick="toggleLike('${p.id}', null, true)" class="${isLiked?'like-btn active':'like-btn'}">Нравится (${p.likes || 0})</button></div>`;
+                    wall.appendChild(div);
+                });
+            }
+        }
+
+        function initRealtime() {
+            _supabase.channel('any').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, (payload) => {
+                const m = payload.new;
+                if(m.sender_id != myId) {
+                    if(currentChatId === m.chat_id) loadMessages();
+                    else if(m.chat_id.includes(myId) || m.chat_id.startsWith("group_")) showToast(m.sender_id, m.text);
+                }
+            }).subscribe();
+        }
+
+        function showToast(senderId, text) {
+            const container = document.getElementById('notification-container');
+            const t = document.createElement('div'); t.className = 'toast';
+            t.innerHTML = `<b>ID ${senderId}:</b> ${text.substring(0,30)}...`;
+            t.onclick = () => viewProfile(senderId);
+            container.appendChild(t); setTimeout(() => t.remove(), 5000);
+        }
+
+        async function loadUsers() {
+            const { data } = await _supabase.from('users').select('*');
+            if(data) document.getElementById('users-list').innerHTML = data.map(u => `<div style="padding:10px 5px; cursor:pointer; display:flex; align-items:center; gap:12px; margin-bottom:5px;" onclick="viewProfile('${u.id_number}')"><img src="${u.avatar_url || DEFAULT_AVATAR}" style="width:32px; height:32px; border-radius:50%; object-fit:cover; border:1px solid var(--border-ui);"> <b style="font-weight:600; font-size:14px;">${u.nickname}</b></div>`).join('');
+        }
+
+        async function loadGroups() {
+            const { data } = await _supabase.from('groups').select('*');
+            if(data) {
+                const publics = data.filter(g => g.name.startsWith('[PUB] '));
+                const normals = data.filter(g => !g.name.startsWith('[PUB] '));
+                const htmlPublics = publics.map(g => `<div style="padding:10px 5px; cursor:pointer; font-size:14px; font-weight:600;" onclick="startGroupChat('${g.id}','${g.name.replace('[PUB] ', '')}')"><span style="color:var(--ig-blue); margin-right:5px;">🌍</span> ${g.name.replace('[PUB] ', '')}</div>`).join('');
+                document.querySelectorAll('.public-chats-list-class').forEach(el => el.innerHTML = htmlPublics);
+                const htmlNormals = normals.map(g => `<div style="padding:10px 5px; cursor:pointer; font-size:14px; font-weight:600;" onclick="startGroupChat('${g.id}','${g.name}')"><span style="color:var(--ig-blue); margin-right:5px;">#</span> ${g.name}</div>`).join('');
+                document.querySelectorAll('.groups-list-class').forEach(el => el.innerHTML = htmlNormals);
+            }
+        }
+
+        function createPublicChat() { 
+            const n = prompt("Название паблик чата:"); 
+            if(n) _supabase.from('groups').insert([{name: '[PUB] ' + n}]).then(loadGroups); 
+        }
+
+        function startGroupChat(id, name) {
+            currentChatId = "group_" + id;
+            document.getElementById('profile-screen').style.display = 'none';
+            document.getElementById('chat-window').style.display = 'flex';
+            document.getElementById('chat-title').innerText = name;
+            switchTab('col-main'); loadMessages();
+        }
+
+        async function toggleLike(postId, authorId, isFeed = false) {
+            const { data: post } = await _supabase.from('posts').select('likes, liked_by').eq('id', postId).single();
+            if (!post) return;
+            let likedBy = post.liked_by || [];
+            let likesCount = parseInt(post.likes) || 0;
+            const uid = String(myId);
+            if (likedBy.includes(uid)) { likedBy = likedBy.filter(i => i !== uid); likesCount = Math.max(0, likesCount - 1); } 
+            else { likedBy.push(uid); likesCount++; }
+            await _supabase.from('posts').update({ likes: likesCount, liked_by: likedBy }).eq('id', postId);
+            if(isFeed) loadFeed(); else loadPosts(authorId);
+        }
+
+        async function loadInbox() {
+            const { data } = await _supabase.from('messages').select('*').order('created_at', { ascending: false }).limit(40);
+            const list = document.getElementById('inbox-list');
+            if(!data) return;
+            const res = []; const seen = new Set();
+            for(let m of data) {
+                if(m.sender_id == myId) continue;
+                if(m.chat_id.includes(myId) || m.chat_id.startsWith("group_")) {
+                    if(!seen.has(m.chat_id)) { seen.add(m.chat_id); res.push(m); }
+                }
+                if(res.length >= 5) break;
+            }
+            list.innerHTML = res.map(m => `<div style="padding:10px 0; cursor:pointer; font-size:14px;" onclick="openChatById('${m.chat_id}')"><b>${m.chat_id.startsWith('group_')?'Группа':'ID '+m.sender_id}:</b> <span style="color:var(--text-sub);">${m.text.substring(0,35)}</span></div>`).join('');
+        }
+
+        async function openChatById(chatId) {
+            if(chatId.startsWith("group_")) {
+                const gid = chatId.replace("group_", "");
+                const {data} = await _supabase.from('groups').select('name').eq('id', gid).single();
+                if(data) startGroupChat(gid, data.name);
+            } else {
+                const tid = chatId.split('_').find(x => x != myId);
+                const {data} = await _supabase.from('users').select('nickname').eq('id_number', tid).single();
+                if(data) openPrivate(tid, data.nickname);
+            }
+        }
+
+        function showAbout() {
+            clearMainArea();
+            document.getElementById('wall-posts').innerHTML = `<div class="tab-header">О проекте</div><div class="card" style="line-height:1.6; padding:30px;"><strong style="font-size:24px; font-weight:300; color:var(--text-main);">Bigion.ru</strong><br><span style="color:var(--text-sub);">Все права защищены!</span><br><br>Bigion.ru это мессенджер где ваши данные будут защищены.</div>`;
+        }
+        
+        function showWall() { viewProfile(myId); }
+        function goToId() { const i = document.getElementById('target-id-input').value; if(i) viewProfile(i); }
+        function createGroup() { const n = prompt("Название группы:"); if(n) _supabase.from('groups').insert([{name:n}]).then(loadGroups); }
+        function sendImagePrompt() { const url = prompt("Вставь URL картинки:"); if(url) { document.getElementById('msg-input').value = url; sendMessage(); } }
+        async function deletePost(postId) { if(!confirm("Удалить этот пост?")) return; await _supabase.from('posts').delete().eq('id', postId).eq('author_id', myId); viewProfile(myId); }
+        async function checkFollowStatus(id) { const { data } = await _supabase.from('follows').select('*').eq('follower_id', myId).eq('following_id', id).single(); const btn = document.getElementById('follow-btn'); btn.innerText = data ? "Отписаться" : "Подписаться"; btn.style.background = data ? "transparent" : "var(--ig-blue)"; btn.style.color = data ? "var(--text-main)" : "#fff"; btn.onclick = () => toggleFollow(id, !!data); }
+        async function toggleFollow(id, isF) { if(isF) await _supabase.from('follows').delete().eq('follower_id', myId).eq('following_id', id); else await _supabase.from('follows').insert([{follower_id:myId, following_id:id}]); viewProfile(id); }
+        async function updateFollowCounts(id) { const { count: f1 } = await _supabase.from('follows').select('*', { count: 'exact' }).eq('following_id', id); const { count: f2 } = await _supabase.from('follows').select('*', { count: 'exact' }).eq('follower_id', id); document.getElementById('count-followers').innerText = f1 || 0; document.getElementById('count-following').innerText = f2 || 0; }
+        async function checkFavoriteStatus(id) { const btn = document.getElementById('fav-btn'); const { data } = await _supabase.from('favorites').select('*').eq('user_id', myId).eq('favorite_id', id).single(); btn.innerText = data ? "Удалить из избранного" : "В избранное"; btn.onclick = () => toggleFavorite(id, !!data); }
+        async function toggleFavorite(id, isFav) { if(isFav) await _supabase.from('favorites').delete().eq('user_id', myId).eq('favorite_id', id); else await _supabase.from('favorites').insert([{user_id: myId, favorite_id: id}]); checkFavoriteStatus(id); }
+        async function loadFavoritesTab() { clearMainArea(); const wall = document.getElementById('wall-posts'); wall.innerHTML = '<div class="tab-header">Избранные</div>'; const { data: favs } = await _supabase.from('favorites').select('favorite_id').eq('user_id', myId); if(!favs || favs.length === 0) { wall.innerHTML += '<div style="padding:20px; color:var(--text-sub);\">Нет избранных.</div>'; return; } const { data: users } = await _supabase.from('users').select('*').in('id_number', favs.map(f => f.favorite_id)); if(users) { users.forEach(u => { const div = document.createElement('div'); div.style.display = 'flex'; div.style.alignItems = 'center'; div.style.gap = '15px'; div.style.cursor = 'pointer'; div.style.padding = '15px 10px'; div.style.borderBottom = '1px solid var(--border-ui)'; div.onclick = () => viewProfile(u.id_number); div.innerHTML = `<img src="${u.avatar_url || DEFAULT_AVATAR}" style="width:50px; height:50px; border-radius:50%; object-fit:cover; border:1px solid var(--border-ui);"><b style="font-size:16px; font-weight:600;">${u.nickname}</b> <small style="color:var(--text-sub);">(ID: ${u.id_number})</small>`; wall.appendChild(div); }); } }
+    </script>
+</body>
+</html>
